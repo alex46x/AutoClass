@@ -23,6 +23,8 @@ const navItems = {
   CR: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/cr' },
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
+    { icon: CalendarIcon, label: 'Makeup Class', href: '/cr/makeup-class' },
+    { icon: Bell, label: 'Send Notice', href: '/cr/notices' },
   ],
   ADMIN: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -76,7 +78,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 w-full p-6 border-t border-slate-100 dark:border-slate-800">
+        <div className="absolute bottom-0 left-0 w-full p-6 pb-12 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-gray-900 z-20">
           <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl mb-3 border border-slate-100 dark:border-slate-700/50">
             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 uppercase">
               {userName[0]}
