@@ -169,3 +169,17 @@ export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED'
   revalidatePath('/admin/approvals');
   revalidatePath('/admin/users');
 }
+
+export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN') {
+  await requireAdmin();
+  await db.update(users).set({ role }).where(eq(users.id, id));
+  
+  // Notify the user
+  await sendNotification(
+    id,
+    '🎭 Role Updated',
+    `Your system role has been updated to ${role}. Please log out and log in again to see the changes.`
+  );
+  
+  revalidatePath('/admin/users');
+}

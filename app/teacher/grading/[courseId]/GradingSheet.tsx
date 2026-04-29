@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { saveGrades } from '@/app/actions/grading';
 import { Save, FileSpreadsheet } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 
 export default function GradingSheet({ exam, students }: { exam: any, students: any[] }) {
   const [grades, setGrades] = useState<Record<number, string>>(
@@ -60,14 +61,25 @@ export default function GradingSheet({ exam, students }: { exam: any, students: 
           </div>
         </div>
         
-        <button
-          onClick={handleSave}
-          disabled={!isDirty || isSaving}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? 'Saving...' : 'Save Grades'}
-        </button>
+        <div className="flex items-center gap-2">
+          <ExportButton 
+            data={students.map(s => ({
+              Roll: s.roll || '-',
+              StudentID: s.studentId || '-',
+              Name: s.name,
+              Marks: grades[s.id] || '0'
+            }))}
+            filename={`Grades_${exam.title}`}
+          />
+          <button
+            onClick={handleSave}
+            disabled={!isDirty || isSaving}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4" />
+            {isSaving ? 'Saving...' : 'Save Grades'}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">

@@ -34,8 +34,11 @@ export async function getStudentTranscript() {
     .innerJoin(exams, eq(grades.examId, exams.id))
     .where(eq(grades.studentId, session.id));
 
-  // 3. Map grades to courses and calculate totals
-  return enrolledCourses.map(course => {
+  let totalWeightedPoints = 0;
+  let totalCreditsAttempted = 0;
+  let totalCreditsEarned = 0;
+
+  const courseData = enrolledCourses.map(course => {
     const courseGrades = studentGrades.filter(g => g.courseId === course.id);
     
     let totalMaxMarks = 0;
@@ -48,16 +51,21 @@ export async function getStudentTranscript() {
 
     const percentage = totalMaxMarks > 0 ? (totalMarksObtained / totalMaxMarks) * 100 : 0;
     
-    // Simple Letter Grade mapping
     let letterGrade = 'N/A';
+    let gradePoint = 0;
+
     if (totalMaxMarks > 0) {
-      if (percentage >= 80) letterGrade = 'A+';
-      else if (percentage >= 75) letterGrade = 'A';
-      else if (percentage >= 70) letterGrade = 'A-';
-      else if (percentage >= 65) letterGrade = 'B+';
-      else if (percentage >= 60) letterGrade = 'B';
-      else if (percentage >= 50) letterGrade = 'C';
-      else letterGrade = 'F';
+      if (percentage >= 80) { letterGrade = 'A+'; gradePoint = 4.00; }
+      else if (percentage >= 75) { letterGrade = 'A'; gradePoint = 3.75; }
+      else if (percentage >= 70) { letterGrade = 'A-'; gradePoint = 3.50; }
+      else if (percentage >= 65) { letterGrade = 'B+'; gradePoint = 3.25; }
+      else if (percentage >= 60) { letterGrade = 'B'; gradePoint = 3.00; }
+      else if (percentage >= 50) { letterGrade = 'C'; gradePoint = 2.50; }
+      else { letterGrade = 'F'; gradePoint = 0.00; }
+
+      totalWeightedPoints += gradePoint * course.credits;
+      totalCreditsAttempted += course.credits;
+      if (gradePoint > 0) totalCreditsEarned += course.credits;
     }
 
     return {
@@ -66,7 +74,20 @@ export async function getStudentTranscript() {
       totalMaxMarks,
       totalMarksObtained,
       percentage: Math.round(percentage * 10) / 10,
-      letterGrade
+      letterGrade,
+      gradePoint
     };
   });
+
+  const cgpa = totalCreditsAttempted > 0 ? (totalWeightedPoints / totalCreditsAttempted).toFixed(2) : '0.00';
+
+  return {
+    courses: courseData,
+    overall: {
+      cgpa,
+      totalCreditsAttempted,
+      totalCreditsEarned,
+      courseCount: enrolledCourses.length
+    }
+  };
 }

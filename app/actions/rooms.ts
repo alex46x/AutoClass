@@ -1,47 +1,37 @@
 'use server';
 
 import { db } from '@/lib/db';
+import { schedules, classrooms } from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
-export async function findEmptyRooms(
-  dayOfWeek: number, 
-  startTime: string, 
-  endTime: string, 
-  minCapacity: number,
-  needsProjector: boolean,
-  needsLab: boolean
-) {
+export async function getRoomOccupancyData() {
   const session = await getSession();
-  if (!session || (session.role !== 'CR' && session.role !== 'ADMIN' && session.role !== 'TEACHER')) {
-    throw new Error('Unauthorized');
-  }
+  if (!session) throw new Error('Unauthorized');
 
-  // Find classrooms that match capacity and equipment requirements,
-  // AND are NOT present in the schedules table for the given day/time where there's an overlap.
+  // We want to count how many rooms are busy at each (Day, TimeSlot)
+  // Standard slots: 08:00, 09:30, 11:00, 12:30, 14:00, 15:30
+  const slots = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30'];
+  const days = [0, 1, 2, 3, 4, 5, 6]; // Sun-Sat
 
-  // Time overlap logic in sqlite:
-  // (s.start_time < new_end) AND (s.end_time > new_start)
+  const allSchedules = await db.select({
+    dayOfWeek: schedules.dayOfWeek,
+    startTime: schedules.startTime,
+  }).from(schedules);
 
-  let query = `
-    SELECT c.id, c.name, c.capacity, c.has_projector, c.is_lab
-    FROM classrooms c
-    WHERE c.capacity >= ${minCapacity}
-  `;
+  const [totalRoomsCount] = await db.select({ count: sql<number>`COUNT(*)` }).from(classrooms);
+  const totalRooms = totalRoomsCount.count || 1;
 
-  if (needsProjector) query += ` AND c.has_projector = 1`;
-  if (needsLab) query += ` AND c.is_lab = 1`;
+  const heatmap = days.map(day => {
+    return slots.map(slot => {
+      const busyCount = allSchedules.filter(s => s.dayOfWeek === day && s.startTime === slot).length;
+      return Math.round((busyCount / totalRooms) * 100);
+    });
+  });
 
-  query += `
-    AND c.id NOT IN (
-      SELECT schedule.classroom_id
-      FROM schedules schedule
-      WHERE schedule.day_of_week = ${dayOfWeek}
-        AND schedule.start_time < '${endTime}'
-        AND schedule.end_time > '${startTime}'
-    )
-  `;
-
-  const availableRooms = await db.all(sql.raw(query));
-  return availableRooms;
+  return {
+    heatmap,
+    days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    slots
+  };
 }

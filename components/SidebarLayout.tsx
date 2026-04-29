@@ -1,11 +1,14 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, Settings, LogOut, Search, Users, MapPin, CheckSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, LogOut, Search, Users, MapPin, CheckSquare, User, BarChart3, Menu, X, Megaphone } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
+import ConfirmModal from './ConfirmModal';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -19,16 +22,20 @@ const navItems = {
     { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
     { icon: CalendarIcon, label: 'Leave Requests', href: '/dashboard/leave' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
+    { icon: User, label: 'Profile', href: '/dashboard/profile' },
+    { icon: CalendarIcon, label: 'Calendar', href: '/dashboard/calendar' },
   ],
   TEACHER: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes' },
     { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
+    { icon: CalendarIcon, label: 'Calendar', href: '/dashboard/calendar' },
   ],
   CR: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/cr' },
     { icon: Users, label: 'Approve Classmates', href: '/cr/approvals' },
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
+    { icon: MapPin, label: 'Room Occupancy', href: '/cr/rooms/occupancy' },
     { icon: CalendarIcon, label: 'Makeup Class', href: '/cr/makeup-class' },
     { icon: Bell, label: 'Send Notice', href: '/cr/notices' },
   ],
@@ -38,12 +45,16 @@ const navItems = {
     { icon: MapPin, label: 'Infrastructure', href: '/admin/infrastructure' },
     { icon: BookOpen, label: 'Academic Setup', href: '/admin/courses' },
     { icon: CheckSquare, label: 'Approvals', href: '/admin/approvals' },
+    { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
+    { icon: Megaphone, label: 'Broadcast', href: '/admin/broadcast' },
   ]
 };
 
 export default function SidebarLayout({ children, role, userName }: { children: React.ReactNode, role: string, userName: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const items = navItems[role as keyof typeof navItems] || [];
 
   const handleLogout = async () => {
@@ -52,11 +63,15 @@ export default function SidebarLayout({ children, role, userName }: { children: 
     router.refresh();
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col md:flex-row font-sans">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex-shrink-0 relative hidden md:block">
-        <div className="p-6 flex items-center gap-2">
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      <div className="p-6 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold">C</span>
           </div>
@@ -64,80 +79,123 @@ export default function SidebarLayout({ children, role, userName }: { children: 
             CampusFlow <span className="text-indigo-600 dark:text-indigo-400">AI</span>
           </span>
         </div>
-        
-        <nav className="mt-6 px-4 space-y-1">
-          {items.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.href} href={item.href}>
-                <span className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer",
-                  isActive 
-                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                )}>
-                  <item.icon className={cn("w-5 h-5", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-                  {item.label}
-                  {isActive && (
-                    <motion.div layoutId="sidebar-active" className="absolute left-0 w-1.5 h-6 bg-indigo-600 dark:bg-indigo-400 rounded-r-full" />
-                  )}
-                </span>
-              </Link>
-            )
-          })}
-        </nav>
+        <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      
+      <nav className="mt-4 px-4 space-y-1 flex-1 overflow-y-auto">
+        {items.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link key={item.href} href={item.href}>
+              <span className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer relative group",
+                isActive 
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+              )}>
+                <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
+                {item.label}
+                {isActive && (
+                  <motion.div layoutId="sidebar-active" className="absolute left-0 w-1.5 h-6 bg-indigo-600 dark:bg-indigo-400 rounded-r-full" />
+                )}
+              </span>
+            </Link>
+          )
+        })}
+      </nav>
 
-        <div className="absolute bottom-0 left-0 w-full p-6 pb-12 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-gray-900 z-20">
-          <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl mb-3 border border-slate-100 dark:border-slate-700/50">
-            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 uppercase">
-              {userName[0]}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{userName}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{role}</p>
-            </div>
+      <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl mb-3 border border-slate-100 dark:border-slate-700/50">
+          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 uppercase">
+            {userName[0]}
           </div>
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20 rounded-xl transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{userName}</p>
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 truncate uppercase tracking-widest">{role}</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20 rounded-xl transition-colors border border-transparent hover:border-rose-100 dark:hover:border-rose-900/50"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+
+        <ConfirmModal 
+          isOpen={showLogoutConfirm}
+          title="Sign Out?"
+          message="Are you sure you want to end your current session?"
+          confirmLabel="Sign Out"
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col md:flex-row font-sans">
+      {/* Desktop Sidebar */}
+      <aside className="w-64 flex-shrink-0 hidden md:block">
+        <div className="fixed top-0 left-0 bottom-0 w-64 h-full">
+          <SidebarContent />
         </div>
       </aside>
 
+      {/* Mobile Sidebar Slide-over */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-[280px] z-[101] md:hidden shadow-2xl flex flex-col"
+            >
+              <SidebarContent />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-50 dark:bg-slate-950">
-        {/* Header for mobile */}
-        <header className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between">
-           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <div className="w-6 h-6 bg-indigo-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-xs">C</span>
+      <main className="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950">
+        {/* Top Header */}
+        <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+              <Menu className="w-6 h-6" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white capitalize">
+                {pathname === '/dashboard' || pathname === '/teacher' || pathname === '/admin' || pathname === '/cr' ? 'Overview' : pathname.split('/').pop()?.replace(/-/g, ' ')}
+              </h1>
             </div>
-            CampusFlow
-          </h1>
-          <button onClick={handleLogout} className="text-slate-500">
-            <LogOut className="w-5 h-5" />
-          </button>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest items-center gap-2 text-slate-500 dark:text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Sync
+            </div>
+            <ThemeToggle />
+            <NotificationBell />
+          </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-4 md:p-8">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <header className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome back, {userName.split(' ')[0]}</h1>
-                <p className="text-slate-500 dark:text-slate-400">Here&apos;s what&apos;s happening today.</p>
-              </div>
-              <div className="flex gap-3">
-                <div className="hidden sm:flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-sm font-medium shadow-sm items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  System Healthy
-                </div>
-                <NotificationBell />
-              </div>
-            </header>
-            
+        <div className="flex-1 p-4 md:p-8">
+          <div className="max-w-6xl mx-auto">
             {children}
           </div>
         </div>

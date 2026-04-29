@@ -91,6 +91,8 @@ export const exams = sqliteTable('exams', {
   courseId: integer('course_id').notNull(),
   type: text('type').notNull(), // 'MIDTERM', 'FINAL', 'QUIZ', 'ASSIGNMENT'
   title: text('title').notNull(),
+  date: text('date'), // YYYY-MM-DD
+  startTime: text('start_time'), // "09:00"
   maxMarks: real('max_marks').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
@@ -114,3 +116,20 @@ export const leaveRequests = sqliteTable('leave_requests', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+export const courseMaterials = sqliteTable('course_materials', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  courseId: integer('course_id').notNull(),
+  teacherId: integer('teacher_id').notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(), // Can be text or a URL
+  type: text('type').notNull(), // 'TEXT', 'LINK', 'FILE_REF'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+export const courseNotices = sqliteTable('course_notices', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  courseId: integer('course_id').notNull(),
+  teacherId: integer('teacher_id').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

@@ -2,6 +2,7 @@ import { getUsers } from '@/app/actions/admin';
 import { Users as UsersIcon, Plus, Trash2, Mail, ShieldAlert } from 'lucide-react';
 import DeleteUserButton from './DeleteUserButton';
 import AddUserForm from './AddUserForm';
+import RoleUpdateButton from './RoleUpdateButton';
 
 export default async function AdminUsersPage() {
   const allUsers = await getUsers();
@@ -56,9 +57,14 @@ export default async function AdminUsersPage() {
                     <Mail className="w-4 h-4" /> {user.email}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {user.role !== 'ADMIN' && (
-                      <DeleteUserButton id={user.id} name={user.name} />
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {user.role !== 'ADMIN' && (
+                        <>
+                          <RoleUpdateButton id={user.id} currentRole={user.role} />
+                          <DeleteUserButton id={user.id} name={user.name} />
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
