@@ -66,15 +66,15 @@ export default async function TeacherDashboard() {
           <div className="flex-1">
             <p className="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">Quick Actions</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3">
+              <Link href="/teacher/classes" className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3">
                 <BookOpen className="w-4 h-4 text-indigo-300" /> My Courses
-              </button>
-              <button className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3">
+              </Link>
+              <Link href="/teacher/rooms" className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3">
                  <Users className="w-4 h-4 text-indigo-300" /> Find Empty Room
-              </button>
-              <button className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3 sm:col-span-2">
+              </Link>
+              <Link href="/teacher/export" className="text-left px-4 py-3 rounded-xl bg-indigo-800/50 hover:bg-indigo-800 text-indigo-50 font-medium text-sm transition-colors border border-indigo-700/50 flex items-center gap-3 sm:col-span-2">
                  <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Export Attendance (Excel)
-              </button>
+              </Link>
             </div>
           </div>
         </div>

@@ -101,3 +101,36 @@ export async function sendNotice(data: {
   revalidatePath('/dashboard');
   return { success: true };
 }
+
+export async function getCRRoster() {
+  const session = await getSession();
+  if (!session || session.role !== 'CR') {
+    throw new Error('Unauthorized');
+  }
+
+  // Get courses the CR is enrolled in
+  const crCourses = await db
+    .select({ courseId: enrollments.courseId })
+    .from(enrollments)
+    .where(eq(enrollments.studentId, session.id));
+
+  const courseIds = crCourses.map((c) => c.courseId);
+  if (courseIds.length === 0) return [];
+
+  // Get all students enrolled in these courses
+  const roster = await db
+    .select({
+      studentId: users.id,
+      studentName: users.name,
+      studentEmail: users.email,
+      courseId: courses.id,
+      courseName: courses.name,
+      courseCode: courses.code,
+    })
+    .from(enrollments)
+    .innerJoin(users, eq(enrollments.studentId, users.id))
+    .innerJoin(courses, eq(enrollments.courseId, courses.id))
+    .where(inArray(enrollments.courseId, courseIds));
+
+  return roster;
+}

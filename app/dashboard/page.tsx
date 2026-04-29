@@ -1,8 +1,9 @@
 import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { schedules, courses, attendance, classrooms, users } from '@/lib/db/schema';
-import { eq, and, getTableColumns, sql } from 'drizzle-orm';
-import { Calendar, Clock, MapPin, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { schedules, courses, attendance, classrooms, users, notifications } from '@/lib/db/schema';
+import { eq, and, getTableColumns, sql, desc } from 'drizzle-orm';
+import { Calendar, Clock, MapPin, AlertCircle, CheckCircle2, BellRing, BellOff } from 'lucide-react';
+import { revalidatePath } from 'next/cache';
 
 export default async function StudentDashboard() {
   const session = await getSession();
@@ -36,6 +37,23 @@ export default async function StudentDashboard() {
   
   const isDanger = attendancePercentage < 75;
   const isWarning = attendancePercentage >= 75 && attendancePercentage < 80;
+
+  // 3. Fetch latest unread notification
+  const [latestNotice] = await db
+    .select()
+    .from(notifications)
+    .where(and(eq(notifications.userId, session.id), eq(notifications.isRead, false)))
+    .orderBy(desc(notifications.createdAt))
+    .limit(1);
+
+  async function markAsRead(formData: FormData) {
+    'use server';
+    const id = Number(formData.get('id'));
+    if (!id) return;
+    
+    await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
+    revalidatePath('/dashboard');
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
@@ -89,18 +107,35 @@ export default async function StudentDashboard() {
       <div className="lg:col-span-2 bg-indigo-900 rounded-3xl p-6 text-white relative overflow-hidden flex flex-col justify-center">
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
-            <div className="bg-indigo-400/30 p-1.5 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-indigo-300" />
+            <div className={`p-1.5 rounded-lg ${latestNotice ? 'bg-rose-400/30' : 'bg-indigo-400/30'}`}>
+              {latestNotice ? <BellRing className={`w-4 h-4 ${latestNotice ? 'text-rose-300' : 'text-indigo-300'}`} /> : <BellOff className="w-4 h-4 text-indigo-300" />}
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">Upcoming Notice</span>
+            <span className={`text-xs font-bold uppercase tracking-wider ${latestNotice ? 'text-rose-300' : 'text-indigo-300'}`}>
+              {latestNotice ? 'New Notice' : 'No New Notices'}
+            </span>
           </div>
-          <h4 className="text-lg font-semibold mb-2">Assignments Due</h4>
-          <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
-            You have 2 pending assignments due this week. Review your calendar to avoid late submissions.
-          </p>
-          <button className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-indigo-900 border border-indigo-500 hover:bg-indigo-500 transition-colors w-fit">
-            View Calendar
-          </button>
+          
+          {latestNotice ? (
+            <>
+              <h4 className="text-lg font-semibold mb-2">{latestNotice.title}</h4>
+              <p className="text-sm text-indigo-100/80 leading-relaxed mb-4 line-clamp-2">
+                {latestNotice.message}
+              </p>
+              <form action={markAsRead}>
+                <input type="hidden" name="id" value={latestNotice.id} />
+                <button type="submit" className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-indigo-900 border border-indigo-500 hover:bg-indigo-500 transition-colors w-fit cursor-pointer">
+                  Mark as Read
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h4 className="text-lg font-semibold mb-2">All caught up!</h4>
+              <p className="text-sm text-indigo-100/80 leading-relaxed mb-4">
+                You have no pending notices. Enjoy your day!
+              </p>
+            </>
+          )}
         </div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20 -translate-y-12 translate-x-12"></div>
       </div>

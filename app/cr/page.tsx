@@ -23,7 +23,7 @@ export default async function CRDashboard() {
         </div>
       </Link>
       
-      <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-end min-h-[240px]">
+      <Link href="/cr/makeup-class" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-end min-h-[240px]">
         <div className="flex-1">
           <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6">
             <CalendarDays className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -31,9 +31,9 @@ export default async function CRDashboard() {
         </div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Makeup Class</h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Request schedule changes</p>
-      </div>
+      </Link>
 
-      <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-end min-h-[240px]">
+      <Link href="/cr/roster" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-end min-h-[240px]">
         <div className="flex-1">
           <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6">
             <Users className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -41,9 +41,9 @@ export default async function CRDashboard() {
         </div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Class Roster</h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">View student details</p>
-      </div>
+      </Link>
 
-      <div className="lg:col-span-2 group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center gap-6">
+      <Link href="/cr/notices" className="lg:col-span-2 group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center gap-6">
          <div className="w-16 h-16 shrink-0 bg-rose-100 dark:bg-rose-900/50 rounded-2xl flex items-center justify-center text-rose-600 dark:text-rose-400">
            <Send className="w-8 h-8 group-hover:-rotate-12 transition-transform" />
          </div>
@@ -51,7 +51,7 @@ export default async function CRDashboard() {
            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Send Notice</h3>
            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Draft and broadcast official messages to your batch.</p>
          </div>
-      </div>
+      </Link>
 
       <div className="lg:col-span-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-6 shadow-sm relative overflow-hidden">
         <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 relative z-10">System Announcements</h2>

@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, Settings, LogOut, Search } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, Settings, LogOut, Search, Users, MapPin, CheckSquare } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -28,7 +28,10 @@ const navItems = {
   ],
   ADMIN: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-    { icon: BookOpen, label: 'Departments', href: '/admin/departments' },
+    { icon: Users, label: 'User Management', href: '/admin/users' },
+    { icon: MapPin, label: 'Infrastructure', href: '/admin/infrastructure' },
+    { icon: BookOpen, label: 'Academic Setup', href: '/admin/courses' },
+    { icon: CheckSquare, label: 'Approvals', href: '/admin/approvals' },
   ]
 };
 
