@@ -5,6 +5,7 @@ import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, Settings, Lo
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import NotificationBell from './NotificationBell';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -15,13 +16,18 @@ const navItems = {
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: CalendarIcon, label: 'Routine', href: '/dashboard/routine' },
     { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
+    { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
+    { icon: CalendarIcon, label: 'Leave Requests', href: '/dashboard/leave' },
+    { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
   ],
   TEACHER: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes' },
+    { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
   ],
   CR: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/cr' },
+    { icon: Users, label: 'Approve Classmates', href: '/cr/approvals' },
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
     { icon: CalendarIcon, label: 'Makeup Class', href: '/cr/makeup-class' },
     { icon: Bell, label: 'Send Notice', href: '/cr/notices' },
@@ -128,10 +134,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   System Healthy
                 </div>
-                <button className="p-2 relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shadow-sm transition-colors">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-slate-900"></span>
-                </button>
+                <NotificationBell />
               </div>
             </header>
             

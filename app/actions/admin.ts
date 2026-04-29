@@ -1,11 +1,12 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { users, departments, classrooms, courses, makeupClasses } from '@/lib/db/schema';
+import { users, departments, classrooms, courses, makeupClasses, enrollments, notifications } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
+import { notifyEnrolledStudents, sendNotification } from './notifications';
 
 async function requireAdmin() {
   const session = await getSession();
@@ -104,12 +105,67 @@ export async function getPendingMakeupClasses() {
 
 export async function updateMakeupStatus(id: number, status: 'APPROVED' | 'REJECTED') {
   await requireAdmin();
+
+  // Fetch makeup class details before updating
+  const makeup = await db.select({
+    courseId: makeupClasses.courseId,
+    date: makeupClasses.date,
+    startTime: makeupClasses.startTime,
+    endTime: makeupClasses.endTime,
+    courseName: courses.name,
+    classroomName: classrooms.name,
+  })
+    .from(makeupClasses)
+    .leftJoin(courses, eq(makeupClasses.courseId, courses.id))
+    .leftJoin(classrooms, eq(makeupClasses.classroomId, classrooms.id))
+    .where(eq(makeupClasses.id, id))
+    .get();
+
   await db.update(makeupClasses).set({ status }).where(eq(makeupClasses.id, id));
-  
-  if (status === 'APPROVED') {
-    // Ideally we would insert this into the `schedules` table, but for now we just approve it.
-    // The attendance system will allow teachers to take attendance for it.
+
+  if (status === 'APPROVED' && makeup) {
+    // Auto-notify all enrolled students
+    await notifyEnrolledStudents(
+      makeup.courseId,
+      '📅 Makeup Class Scheduled',
+      `A makeup class for ${makeup.courseName} has been approved and scheduled on ${makeup.date} from ${makeup.startTime} to ${makeup.endTime} at ${makeup.classroomName}.`
+    );
   }
-  
+
   revalidatePath('/admin/approvals');
+}
+
+// User Approvals
+export async function getPendingUsers() {
+  await requireAdmin();
+  return await db.select().from(users).where(eq(users.accountStatus, 'PENDING')).orderBy(users.createdAt);
+}
+
+export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED') {
+  await requireAdmin();
+
+  // Fetch user before updating
+  const user = await db.select().from(users).where(eq(users.id, id)).get();
+
+  await db.update(users).set({ accountStatus: status }).where(eq(users.id, id));
+
+  // Send notification to the user themselves
+  if (user) {
+    if (status === 'ACTIVE') {
+      await sendNotification(
+        id,
+        '✅ Account Approved',
+        `Welcome to CampusFlow, ${user.name}! Your account has been approved. You can now log in and access the university portal.`
+      );
+    } else {
+      await sendNotification(
+        id,
+        '❌ Account Registration Rejected',
+        `Your account registration request was reviewed and unfortunately rejected. Please contact your Class Representative or Admin for assistance.`
+      );
+    }
+  }
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/admin/users');
 }

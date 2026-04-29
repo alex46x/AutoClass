@@ -22,6 +22,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    if (user.accountStatus === 'PENDING') {
+      return NextResponse.json({ error: 'Your account is pending approval from an Admin or Class Representative.' }, { status: 403 });
+    }
+    
+    if (user.accountStatus === 'REJECTED') {
+      return NextResponse.json({ error: 'Your account registration was rejected.' }, { status: 403 });
+    }
+
     const payload = {
       id: user.id,
       email: user.email,
