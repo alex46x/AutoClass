@@ -10,7 +10,7 @@ import { sendNotification } from './notifications';
 // STUDENT ACTIONS
 export async function submitLeaveRequest(startDate: string, endDate: string, reason: string) {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) throw new Error('Unauthorized');
 
   await db.insert(leaveRequests).values({
     studentId: session.id,
@@ -25,7 +25,7 @@ export async function submitLeaveRequest(startDate: string, endDate: string, rea
 
 export async function getMyLeaveRequests() {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) throw new Error('Unauthorized');
 
   return await db
     .select()

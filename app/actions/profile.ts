@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 
 async function requireStudent() {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) throw new Error('Unauthorized');
   return session;
 }
 
@@ -23,17 +23,13 @@ export async function getStudentProfile() {
 
 export async function updateStudentProfile(data: {
   name: string;
-  semester: string;
-  section: string;
-  roll: string;
+  roll?: string;
   phone?: string;
 }) {
   const session = await requireStudent();
 
   await db.update(users).set({
     name: data.name,
-    semester: data.semester,
-    section: data.section,
     roll: data.roll,
   }).where(eq(users.id, session.id));
 

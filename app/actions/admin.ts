@@ -1,8 +1,8 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { users, departments, classrooms, courses, makeupClasses, enrollments, notifications } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, departments, classrooms, courses, makeupClasses, enrollments, notifications, semesters, sections, studentRemovalRequests } from '@/lib/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
@@ -16,13 +16,37 @@ async function requireAdmin() {
 
 export async function getUsers() {
   await requireAdmin();
-  return await db.select().from(users).orderBy(users.name);
+  return await db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    departmentId: users.departmentId,
+    semesterId: users.semesterId,
+    sectionId: users.sectionId,
+    accountStatus: users.accountStatus,
+    createdAt: users.createdAt,
+    departmentName: departments.name,
+    semesterName: semesters.name,
+    sectionName: sections.name,
+  })
+  .from(users)
+  .leftJoin(departments, eq(users.departmentId, departments.id))
+  .leftJoin(semesters, eq(users.semesterId, semesters.id))
+  .leftJoin(sections, eq(users.sectionId, sections.id))
+  .orderBy(users.name);
 }
 
-export async function createUser(data: { name: string; email: string; role: string }) {
+export async function createUser(data: { name: string; email: string; role: string; departmentId?: number; semesterId?: number; sectionId?: number }) {
   await requireAdmin();
   
-  // Hash a default password: "password123"
+  if (data.role === 'CR' && data.sectionId) {
+    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, data.sectionId)));
+    if (existingCRs.length >= 2) {
+      throw new Error("Maximum 2 CRs allowed per class section");
+    }
+  }
+
   const passwordHash = await bcrypt.hash('password123', 10);
 
   await db.insert(users).values({
@@ -30,7 +54,9 @@ export async function createUser(data: { name: string; email: string; role: stri
     email: data.email,
     passwordHash,
     role: data.role,
-    departmentId: 1 // Default to department 1 for now
+    departmentId: data.departmentId || null,
+    semesterId: data.semesterId || null,
+    sectionId: data.sectionId || null,
   });
   
   revalidatePath('/admin/users');
@@ -172,9 +198,19 @@ export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED'
 
 export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN') {
   await requireAdmin();
+
+  if (role === 'CR') {
+    const user = await db.select().from(users).where(eq(users.id, id)).get();
+    if (user && user.sectionId) {
+      const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, user.sectionId)));
+      if (existingCRs.length >= 2) {
+        throw new Error("Maximum 2 CRs allowed per class section");
+      }
+    }
+  }
+
   await db.update(users).set({ role }).where(eq(users.id, id));
   
-  // Notify the user
   await sendNotification(
     id,
     '🎭 Role Updated',
@@ -182,4 +218,81 @@ export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | '
   );
   
   revalidatePath('/admin/users');
+}
+
+
+// Semesters & Sections
+export async function getSemesters() {
+  await requireAdmin();
+  return await db.select().from(semesters).orderBy(semesters.createdAt);
+}
+
+export async function createSemester(name: string) {
+  await requireAdmin();
+  await db.insert(semesters).values({ name });
+  revalidatePath('/admin/infrastructure');
+}
+
+export async function updateSemester(id: number, name: string) {
+  await requireAdmin();
+  await db.update(semesters).set({ name }).where(eq(semesters.id, id));
+  revalidatePath('/admin/infrastructure');
+}
+
+export async function getSections() {
+  await requireAdmin();
+  return await db.select().from(sections).orderBy(sections.name);
+}
+
+export async function createSection(name: string, semesterId: number) {
+  await requireAdmin();
+  await db.insert(sections).values({ name, semesterId });
+  revalidatePath('/admin/infrastructure');
+}
+
+// ── Student Removal Requests ──────────────────────────────────────────────────
+
+export async function getStudentRemovalRequests() {
+  await requireAdmin();
+
+  return await db.all(sql`
+    SELECT 
+      srr.id,
+      srr.reason,
+      srr.status,
+      srr.admin_note as adminNote,
+      srr.created_at as createdAt,
+      s.id as studentId,
+      s.name as studentName,
+      s.email as studentEmail,
+      s.student_id as studentStudentId,
+      cr.name as crName
+    FROM student_removal_requests srr
+    LEFT JOIN users s ON srr.student_id = s.id
+    LEFT JOIN users cr ON srr.cr_id = cr.id
+    WHERE srr.status = 'PENDING'
+    ORDER BY srr.created_at DESC
+  `) as any[];
+}
+
+export async function resolveStudentRemovalRequest(id: number, approve: boolean, adminNote?: string) {
+  await requireAdmin();
+  const status = approve ? 'APPROVED' : 'REJECTED';
+
+  const request = await db.select()
+    .from(studentRemovalRequests)
+    .where(eq(studentRemovalRequests.id, id))
+    .get();
+  if (!request) throw new Error('Request not found');
+
+  await db.update(studentRemovalRequests)
+    .set({ status, adminNote: adminNote || null })
+    .where(eq(studentRemovalRequests.id, id));
+
+  if (approve) {
+    await db.delete(users).where(eq(users.id, request.studentId));
+  }
+
+  revalidatePath('/admin/approvals');
+  revalidatePath('/cr/roster');
 }

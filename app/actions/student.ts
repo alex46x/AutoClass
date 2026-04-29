@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 
 export async function getStudentRoutine() {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') {
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) {
     throw new Error('Unauthorized');
   }
 
@@ -51,7 +51,7 @@ export async function getStudentRoutine() {
 
 export async function getStudentCourses() {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') {
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) {
     throw new Error('Unauthorized');
   }
 

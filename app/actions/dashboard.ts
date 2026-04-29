@@ -19,7 +19,8 @@ async function requireRole(role: string) {
 }
 
 export async function getStudentDashboardStats() {
-  const session = await requireRole('STUDENT');
+  const session = await getSession();
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) throw new Error('Unauthorized');
   const userId = session.id;
 
   // 1. Attendance %

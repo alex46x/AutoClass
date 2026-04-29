@@ -1,4 +1,7 @@
-import { getSession } from '@/lib/auth';
+import fs from 'fs';
+
+const path = 'app/admin/page.tsx';
+const content = `import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
 import { getPendingMakeupClasses, getPendingUsers } from '@/app/actions/admin';
@@ -13,13 +16,13 @@ export default async function AdminDashboard() {
   if (!session) return null;
 
   // Basic stats
-  const [stats] = await db.all(sql`
+  const [stats] = await db.all(sql\`
     SELECT 
       (SELECT COUNT(*) FROM users WHERE role = 'STUDENT') as total_students,
       (SELECT COUNT(*) FROM users WHERE role = 'TEACHER') as total_teachers,
       (SELECT COUNT(*) FROM departments) as total_departments,
       (SELECT COUNT(*) FROM classrooms) as total_classrooms
-  `) as any[];
+  \`) as any[];
 
   const pendingMakeup = await getPendingMakeupClasses();
   const pendingUsers = await getPendingUsers();
@@ -40,7 +43,7 @@ export default async function AdminDashboard() {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
             <h3 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">{String(stat.value)}</h3>
           </div>
-          <div className={`w-12 h-12 ${stat.bg} ${stat.darkBg} rounded-2xl flex items-center justify-center ${stat.color} ${stat.darkColor} relative z-10 transition-transform group-hover:scale-110`}>
+          <div className={\`w-12 h-12 \${stat.bg} \${stat.darkBg} rounded-2xl flex items-center justify-center \${stat.color} \${stat.darkColor} relative z-10 transition-transform group-hover:scale-110\`}>
             <stat.icon className="w-6 h-6" />
           </div>
         </div>
@@ -94,7 +97,7 @@ export default async function AdminDashboard() {
           )}
 
           {pendingMakeup.map(makeup => (
-            <div key={`makeup-${makeup.id}`} className="p-4 border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex justify-between items-center group transition-colors hover:border-amber-300 dark:hover:border-amber-700/50 shrink-0">
+            <div key={\`makeup-\${makeup.id}\`} className="p-4 border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex justify-between items-center group transition-colors hover:border-amber-300 dark:hover:border-amber-700/50 shrink-0">
               <div>
                 <p className="font-bold text-amber-900 dark:text-amber-400 text-sm">Makeup Class Request</p>
                 <p className="text-xs font-medium text-amber-700/80 dark:text-amber-500/80 mt-1">{makeup.courseName} - Requested by {makeup.teacherName}</p>
@@ -104,7 +107,7 @@ export default async function AdminDashboard() {
           ))}
 
           {pendingUsers.map(user => (
-            <div key={`user-${user.id}`} className="p-4 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex justify-between items-center transition-colors hover:border-slate-300 dark:hover:border-slate-600 group shrink-0">
+            <div key={\`user-\${user.id}\`} className="p-4 border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex justify-between items-center transition-colors hover:border-slate-300 dark:hover:border-slate-600 group shrink-0">
               <div>
                 <p className="font-bold text-slate-900 dark:text-slate-300 text-sm">New {user.role === 'TEACHER' ? 'Teacher' : user.role === 'CR' ? 'CR' : 'Student'} Registration</p>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">{user.name} ({user.email})</p>
@@ -117,3 +120,7 @@ export default async function AdminDashboard() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path, content);
+console.log('Admin Dashboard updated');

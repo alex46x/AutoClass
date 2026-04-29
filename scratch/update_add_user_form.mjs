@@ -1,4 +1,7 @@
-'use client';
+import fs from 'fs';
+
+const path = 'app/admin/users/AddUserForm.tsx';
+const content = `'use client';
 
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
@@ -178,3 +181,7 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
     </>
   );
 }
+`;
+
+fs.writeFileSync(path, content);
+console.log('AddUserForm updated');

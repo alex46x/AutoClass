@@ -1,4 +1,7 @@
-import { getUsers, getDepartments, getSemesters, getSections } from '@/app/actions/admin';
+import fs from 'fs';
+
+const path = 'app/admin/users/page.tsx';
+const content = `import { getUsers, getDepartments, getSemesters, getSections } from '@/app/actions/admin';
 import { Users as UsersIcon, Mail } from 'lucide-react';
 import DeleteUserButton from './DeleteUserButton';
 import AddUserForm from './AddUserForm';
@@ -69,19 +72,19 @@ export default async function AdminUsersPage({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                    <span className={\`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider \${
                       user.role === 'ADMIN' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
                       user.role === 'TEACHER' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       user.role === 'CR' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
                       'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                    }`}>
+                    }\`}>
                       {user.role}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
                       {user.departmentName && <span className="text-slate-700 dark:text-slate-300 font-medium">{user.departmentName}</span>}
-                      {user.semesterName && <span className="text-xs text-slate-500 dark:text-slate-400">{user.semesterName} {user.sectionName ? `(${user.sectionName})` : ''}</span>}
+                      {user.semesterName && <span className="text-xs text-slate-500 dark:text-slate-400">{user.semesterName} {user.sectionName ? \`(\${user.sectionName})\` : ''}</span>}
                       {!user.departmentName && !user.semesterName && <span className="text-slate-400 italic">Not Assigned</span>}
                     </div>
                   </td>
@@ -116,3 +119,7 @@ export default async function AdminUsersPage({
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path, content);
+console.log('users page.tsx updated');

@@ -1,10 +1,13 @@
-import { getCourses, getDepartments } from '@/app/actions/admin';
+import { getCourses, getDepartments, getSemesters, getSections } from '@/app/actions/admin';
 import { BookOpen, Hash } from 'lucide-react';
 import AddCourseForm from './AddCourseForm';
+import SemesterManager from './SemesterManager';
 
 export default async function AdminCoursesPage() {
   const courses = await getCourses();
   const departments = await getDepartments();
+  const semesters = await getSemesters();
+  const sections = await getSections();
 
   return (
     <div className="space-y-6">
@@ -19,6 +22,8 @@ export default async function AdminCoursesPage() {
         
         <AddCourseForm departments={departments} />
       </header>
+
+      <SemesterManager semesters={semesters} sections={sections} />
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">

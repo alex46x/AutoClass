@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 
 export async function getStudentTranscript() {
   const session = await getSession();
-  if (!session || session.role !== 'STUDENT') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'STUDENT' && session.role !== 'CR')) throw new Error('Unauthorized');
 
   // 1. Get enrolled courses
   const enrolledCourses = await db

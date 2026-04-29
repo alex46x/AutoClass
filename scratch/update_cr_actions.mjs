@@ -1,8 +1,11 @@
-'use server';
+import fs from 'fs';
+
+const path = 'app/actions/cr.ts';
+const content = `'use server';
 
 import { db } from '@/lib/db';
-import { users, courses, classrooms, makeupClasses, enrollments, schedules, semesters, sections, notifications, enrollments as _e, studentRemovalRequests } from '@/lib/db/schema';
-import { eq, and, sql, ne } from 'drizzle-orm';
+import { users, courses, classrooms, makeupClasses, enrollments, schedules, semesters, sections } from '@/lib/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { sendNotification } from './notifications';
@@ -38,7 +41,7 @@ export async function approveClassmate(id: number) {
     throw new Error('You can only approve students in your exact semester and section');
   }
   await db.update(users).set({ accountStatus: 'ACTIVE' }).where(eq(users.id, id));
-  await sendNotification(id, '✅ Account Approved', `Welcome! Your account was approved by your CR (${crUser.name}). You can now log in to CampusFlow.`);
+  await sendNotification(id, '✅ Account Approved', \`Welcome! Your account was approved by your CR (\${crUser.name}). You can now log in to CampusFlow.\`);
   revalidatePath('/cr/approvals');
 }
 
@@ -73,30 +76,12 @@ export async function getCRClassmates() {
       eq(users.sectionId, crUser.sectionId || 0),
       eq(users.accountStatus, 'ACTIVE'),
     )
-  ).orderBy(sql`CAST(${users.roll} AS INTEGER)`);
+  ).orderBy(sql\`CAST(\${users.roll} AS INTEGER)\`);
 }
 
 export async function getCRProfile() {
   const { crUser } = await requireCR();
-  
-  let semesterName = 'N/A';
-  let sectionName = 'N/A';
-  
-  if (crUser.semesterId) {
-    const sem = await db.select().from(semesters).where(eq(semesters.id, crUser.semesterId)).get();
-    if (sem) semesterName = sem.name;
-  }
-  
-  if (crUser.sectionId) {
-    const sec = await db.select().from(sections).where(eq(sections.id, crUser.sectionId)).get();
-    if (sec) sectionName = sec.name;
-  }
-
-  return {
-    ...crUser,
-    semester: semesterName,
-    section: sectionName,
-  };
+  return crUser;
 }
 
 // ── Makeup Class ──────────────────────────────────────────────────────────────
@@ -202,115 +187,7 @@ export async function getCRDashboardStats() {
     crName: crUser.name,
   };
 }
+`;
 
-// ── Send Notice to section classmates ─────────────────────────────────────────
-
-export async function sendNotice(data: { courseId: number; title: string; message: string }) {
-  const { crUser } = await requireCR();
-  const sectionId = crUser.sectionId || 0;
-
-  const classmates = await db.select({ id: users.id }).from(users).where(
-    and(
-      eq(users.sectionId, sectionId),
-      eq(users.accountStatus, 'ACTIVE'),
-    )
-  );
-
-  if (classmates.length === 0) return;
-
-  await Promise.all(
-    classmates.map(student =>
-      db.insert(notifications).values({
-        userId: student.id,
-        title: data.title,
-        message: data.message,
-      })
-    )
-  );
-
-  revalidatePath('/cr/notices');
-}
-
-// ── Classmate Roster (full detail) ────────────────────────────────────────────
-
-export async function getCRClassmatesWithDetails() {
-  const { crUser } = await requireCR();
-  const sectionId = crUser.sectionId || 0;
-  const semesterId = crUser.semesterId || 0;
-
-  return await db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    studentId: users.studentId,
-    roll: users.roll,
-    role: users.role,
-    accountStatus: users.accountStatus,
-  }).from(users).where(
-    and(
-      eq(users.semesterId, semesterId),
-      eq(users.sectionId, sectionId),
-      eq(users.accountStatus, 'ACTIVE'),
-      ne(users.id, crUser.id),
-    )
-  ).orderBy(sql`CAST(${users.roll} AS INTEGER)`);
-}
-
-// ── Student Removal Request ────────────────────────────────────────────────────
-
-export async function requestStudentRemoval(studentId: number, reason: string) {
-  const { crUser } = await requireCR();
-
-  const student = await db.select().from(users).where(eq(users.id, studentId)).get();
-  if (!student || student.sectionId !== crUser.sectionId) {
-    throw new Error('Student is not in your section');
-  }
-
-  const existing = await db.select().from(studentRemovalRequests).where(
-    and(
-      eq(studentRemovalRequests.studentId, studentId),
-      eq(studentRemovalRequests.status, 'PENDING')
-    )
-  ).get();
-  if (existing) throw new Error('A removal request for this student is already pending');
-
-  await db.insert(studentRemovalRequests).values({
-    crId: crUser.id,
-    studentId,
-    reason,
-    status: 'PENDING',
-    createdAt: new Date(),
-  });
-
-  const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, 'ADMIN'));
-  await Promise.all(
-    admins.map(admin =>
-      db.insert(notifications).values({
-        userId: admin.id,
-        title: '🚨 Student Removal Request',
-        message: `CR ${crUser.name} has requested removal of a student. Reason: ${reason}`,
-      })
-    )
-  );
-
-  revalidatePath('/cr/roster');
-  revalidatePath('/admin/approvals');
-}
-
-export async function getMyRemovalRequests() {
-  const { crUser } = await requireCR();
-  return await db.select({
-    id: studentRemovalRequests.id,
-    studentId: studentRemovalRequests.studentId,
-    reason: studentRemovalRequests.reason,
-    status: studentRemovalRequests.status,
-    adminNote: studentRemovalRequests.adminNote,
-    createdAt: studentRemovalRequests.createdAt,
-    studentName: users.name,
-    studentEmail: users.email,
-  })
-  .from(studentRemovalRequests)
-  .leftJoin(users, eq(studentRemovalRequests.studentId, users.id))
-  .where(eq(studentRemovalRequests.crId, crUser.id))
-  .orderBy(studentRemovalRequests.createdAt);
-}
+fs.writeFileSync(path, content);
+console.log('CR Actions completely rewritten!');

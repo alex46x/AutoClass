@@ -14,7 +14,9 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-const navItems = {
+type NavItem = { icon: any; label: string; href: string; divider?: string };
+
+const navItems: Record<string, NavItem[]> = {
   STUDENT: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: CalendarIcon, label: 'Routine', href: '/dashboard/routine' },
@@ -32,7 +34,16 @@ const navItems = {
     { icon: CalendarIcon, label: 'Calendar', href: '/dashboard/calendar' },
   ],
   CR: [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/cr' },
+    // ── Student Features ─────────────────────────
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', divider: 'My Academics' },
+    { icon: CalendarIcon, label: 'Routine', href: '/dashboard/routine' },
+    { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
+    { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
+    { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
+    { icon: User, label: 'Profile', href: '/dashboard/profile' },
+    // ── CR Management Features ────────────────────
+    { icon: LayoutDashboard, label: 'CR Dashboard', href: '/cr', divider: 'CR Tools' },
+    { icon: Users, label: 'Class Roster', href: '/cr/roster' },
     { icon: Users, label: 'Approve Classmates', href: '/cr/approvals' },
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
     { icon: MapPin, label: 'Room Occupancy', href: '/cr/rooms/occupancy' },
@@ -80,28 +91,35 @@ export default function SidebarLayout({ children, role, userName }: { children: 
           </span>
         </div>
         <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" suppressHydrationWarning />
         </button>
       </div>
       
       <nav className="mt-4 px-4 space-y-1 flex-1 overflow-y-auto">
-        {items.map((item) => {
+        {items.map((item, index) => {
           const isActive = pathname === item.href;
           return (
-            <Link key={item.href} href={item.href}>
-              <span className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer relative group",
-                isActive 
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" 
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-              )}>
-                <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-                {item.label}
-                {isActive && (
-                  <motion.div layoutId="sidebar-active" className="absolute left-0 w-1.5 h-6 bg-indigo-600 dark:bg-indigo-400 rounded-r-full" />
-                )}
-              </span>
-            </Link>
+            <div key={`${item.href}-${index}`}>
+              {item.divider && (
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-600 px-4 pt-4 pb-1">
+                  {item.divider}
+                </p>
+              )}
+              <Link href={item.href}>
+                <span className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer relative group",
+                  isActive 
+                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" 
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                )}>
+                  <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} suppressHydrationWarning />
+                  {item.label}
+                  {isActive && (
+                    <motion.div layoutId="sidebar-active" className="absolute left-0 w-1.5 h-6 bg-indigo-600 dark:bg-indigo-400 rounded-r-full" />
+                  )}
+                </span>
+              </Link>
+            </div>
           )
         })}
       </nav>
@@ -120,7 +138,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
           onClick={() => setShowLogoutConfirm(true)}
           className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/20 rounded-xl transition-colors border border-transparent hover:border-rose-100 dark:hover:border-rose-900/50"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4" suppressHydrationWarning />
           Sign Out
         </button>
 
@@ -175,7 +193,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
         <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6" suppressHydrationWarning />
             </button>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white capitalize">

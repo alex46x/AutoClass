@@ -7,10 +7,10 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text('role').notNull(), // 'STUDENT', 'TEACHER', 'CR', 'ADMIN'
   departmentId: integer('department_id'),
+  semesterId: integer('semester_id'),
+  sectionId: integer('section_id'),
   studentId: text('student_id'),
   roll: text('roll'),
-  semester: text('semester'),
-  section: text('section'),
   accountStatus: text('account_status').notNull().default('ACTIVE'), // 'PENDING', 'ACTIVE', 'REJECTED'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
@@ -19,6 +19,18 @@ export const departments = sqliteTable('departments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   code: text('code').notNull(),
+});
+
+export const semesters = sqliteTable('semesters', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const sections = sqliteTable('sections', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  semesterId: integer('semester_id').notNull(),
 });
 
 export const courses = sqliteTable('courses', {
@@ -131,5 +143,15 @@ export const courseNotices = sqliteTable('course_notices', {
   teacherId: integer('teacher_id').notNull(),
   title: text('title').notNull(),
   message: text('message').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const studentRemovalRequests = sqliteTable('student_removal_requests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  crId: integer('cr_id').notNull(),
+  studentId: integer('student_id').notNull(),
+  reason: text('reason').notNull(),
+  status: text('status').notNull().default('PENDING'),
+  adminNote: text('admin_note'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

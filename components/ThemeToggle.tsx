@@ -38,7 +38,7 @@ export default function ThemeToggle() {
       className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
       aria-label="Toggle Theme"
     >
-      {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+      {theme === 'light' ? <Moon className="w-5 h-5" suppressHydrationWarning /> : <Sun className="w-5 h-5" suppressHydrationWarning />}
     </button>
   );
 }

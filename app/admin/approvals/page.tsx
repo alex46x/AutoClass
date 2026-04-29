@@ -1,16 +1,18 @@
-import { getPendingMakeupClasses, getPendingUsers } from '@/app/actions/admin';
+import { getPendingMakeupClasses, getPendingUsers, getStudentRemovalRequests } from '@/app/actions/admin';
 import { getPendingLeaveRequests } from '@/app/actions/leave';
-import { CheckSquare, Calendar, Clock, MapPin, User, AlertCircle, ShieldAlert, GraduationCap, CalendarOff } from 'lucide-react';
+import { CheckSquare, Calendar, Clock, MapPin, User, AlertCircle, ShieldAlert, GraduationCap, CalendarOff, UserX } from 'lucide-react';
 import ApprovalButtons from './ApprovalButtons';
 import UserApprovalButtons from './UserApprovalButtons';
 import LeaveApprovalButtons from './LeaveApprovalButtons';
+import RemovalApprovalButtons from './RemovalApprovalButtons';
 
 export default async function AdminApprovalsPage() {
   const pendingRequests = await getPendingMakeupClasses();
   const pendingUsers = await getPendingUsers();
   const pendingLeave = await getPendingLeaveRequests();
+  const pendingRemovals = await getStudentRemovalRequests();
 
-  const totalPending = pendingRequests.length + pendingUsers.length + pendingLeave.length;
+  const totalPending = pendingRequests.length + pendingUsers.length + pendingLeave.length + pendingRemovals.length;
 
   return (
     <div className="space-y-8">
@@ -38,6 +40,34 @@ export default async function AdminApprovalsPage() {
       ) : (
         <div className="space-y-8">
           
+          {/* STUDENT REMOVAL REQUESTS */}
+          {pendingRemovals.length > 0 && (
+            <section>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <UserX className="w-5 h-5 text-rose-500" />
+                Student Removal Requests ({pendingRemovals.length})
+              </h2>
+              <div className="space-y-4">
+                {pendingRemovals.map((req: any) => (
+                  <div key={req.id} className="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-3xl p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-start gap-4">
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                          <UserX className="w-4 h-4 text-rose-500" />
+                          Removal: <span className="text-rose-600 dark:text-rose-400">{req.studentName}</span>
+                        </p>
+                        <p className="text-xs text-slate-500 mb-2">{req.studentEmail} · Student ID: {req.studentStudentId || '—'}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">{req.reason}</p>
+                        <p className="text-xs text-slate-400 mt-2">Requested by CR: <strong>{req.crName}</strong></p>
+                      </div>
+                    </div>
+                    <RemovalApprovalButtons requestId={req.id} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* USER REGISTRATION APPROVALS */}
           {pendingUsers.length > 0 && (
             <section>
@@ -70,7 +100,7 @@ export default async function AdminApprovalsPage() {
                             {user.studentId ? (
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md w-fit">ID: {user.studentId}</span>
-                                <span className="text-xs">Sem: {user.semester} • Sec: {user.section} • Roll: {user.roll}</span>
+                                <span className="text-xs">Sem ID: {user.semesterId ?? '—'} • Sec ID: {user.sectionId ?? '—'} • Roll: {user.roll}</span>
                               </div>
                             ) : (
                               <span className="text-slate-400 italic">No academic data</span>
