@@ -7,7 +7,7 @@ export default async function CRDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header identity card */}
+      {/* Header identity    d card */}
       <div className="bg-gradient-to-br from-indigo-900 to-indigo-700 rounded-3xl p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="text-indigo-300 text-sm font-semibold uppercase tracking-wider mb-1">Class Representative</p>

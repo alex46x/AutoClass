@@ -2,8 +2,8 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
 import { getPendingMakeupClasses, getPendingUsers } from '@/app/actions/admin';
-import { 
-  Building2, Users, GraduationCap, 
+import {
+  Building2, Users, GraduationCap,
   MapPin, Settings, AlertTriangle, UserCheck
 } from 'lucide-react';
 import Link from 'next/link';
@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
 
   const pendingMakeup = await getPendingMakeupClasses();
   const pendingUsers = await getPendingUsers();
-  
+
   const totalPending = pendingMakeup.length + pendingUsers.length;
 
   return (
@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
         </div>
       ))}
 
-      {/* Quick Config Links */}
+      {/* Quick Config Links + More Configuration  x  Options */}
       <div className="lg:col-span-2 bg-indigo-900 rounded-3xl p-6 border border-indigo-800 shadow-sm relative overflow-hidden flex flex-col justify-center">
         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2 relative z-10">
           <Settings className="w-5 h-5 text-indigo-300" />

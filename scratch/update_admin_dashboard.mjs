@@ -124,3 +124,5 @@ export default async function AdminDashboard() {
 
 fs.writeFileSync(path, content);
 console.log('Admin Dashboard updated');
+// run this with nodejs
+// node update_admin_dashboard.mjs
