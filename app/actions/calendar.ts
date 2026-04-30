@@ -12,6 +12,36 @@ import {
 import { eq, and, or } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
+type RegularClassEvent = {
+  id: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  courseName: string;
+  courseCode: string;
+  classroom: string;
+};
+
+type MakeupClassEvent = {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  courseName: string;
+  courseCode: string;
+  classroom: string;
+};
+
+type ExamEvent = {
+  id: number;
+  date: string | null;
+  startTime: string | null;
+  type: string;
+  title: string;
+  courseName: string;
+  courseCode: string;
+};
+
 export async function getCalendarEvents() {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
@@ -20,7 +50,7 @@ export async function getCalendarEvents() {
 
   // 1. Fetch Regular Classes (Schedules)
   // If student, fetch for enrolled courses. If teacher, fetch for their courses.
-  let regularClasses;
+  let regularClasses: RegularClassEvent[];
   if (session.role === 'STUDENT' || session.role === 'CR') {
     regularClasses = await db.select({
       id: schedules.id,
@@ -55,7 +85,7 @@ export async function getCalendarEvents() {
   }
 
   // 2. Fetch Approved Makeup Classes
-  let makeupEvents;
+  let makeupEvents: MakeupClassEvent[];
   if (session.role === 'STUDENT' || session.role === 'CR') {
      makeupEvents = await db.select({
       id: makeupClasses.id,
@@ -88,7 +118,7 @@ export async function getCalendarEvents() {
   }
 
   // 3. Fetch Exams
-  let examEvents;
+  let examEvents: ExamEvent[];
   if (session.role === 'STUDENT' || session.role === 'CR') {
     examEvents = await db.select({
       id: exams.id,

@@ -19,6 +19,11 @@ export async function seed() {
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL,
       department_id INTEGER,
+      semester_id INTEGER,
+      section_id INTEGER,
+      student_id TEXT,
+      roll TEXT,
+      account_status TEXT NOT NULL DEFAULT 'ACTIVE',
       created_at INTEGER NOT NULL
     );
 

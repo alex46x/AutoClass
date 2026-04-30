@@ -54,7 +54,7 @@ export default function SessionCard({ session, date }: { session: Session; date:
         session.type as SessionType,
         date
       );
-      setStudents(data);
+      setStudents(data as Student[]);
     } finally {
       setLoading(false);
     }

@@ -46,8 +46,9 @@ export async function getAdminReportStats() {
   })
   .from(courses)
   .leftJoin(attendance, eq(courses.id, attendance.courseId))
-  .groupBy(courses.id)
-  .orderBy(sql`avgAttendance DESC`);
+  .groupBy(courses.id);
+
+  attendanceStats.sort((a, b) => (b.avgAttendance || 0) - (a.avgAttendance || 0));
 
   // 3. Grade Stats per Course
   const gradeStats = await db.select({

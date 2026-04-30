@@ -161,3 +161,12 @@ export async function getAttendanceHistory(courseId?: number) {
 
   return await query.limit(30);
 }
+// Wrapper for legacy or simplified calls
+export async function submitAttendanceAction(
+  scheduleId: number,
+  courseId: number,
+  date: string,
+  records: { studentId: number; status: 'PRESENT' | 'ABSENT' | 'LATE' }[]
+) {
+  return await saveAttendance(courseId, scheduleId, 'REGULAR', date, records);
+}

@@ -23,7 +23,7 @@ const sqlite = new Database(DB_FILE);
 // Enable WAL mode for better performance
 sqlite.pragma('journal_mode = WAL');
 
-// Execute schema creation to ensure tables exist
+// Execute schema creation to ensure tables exist.
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,12 +32,27 @@ sqlite.exec(`
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL,
     department_id INTEGER,
+    semester_id INTEGER,
+    section_id INTEGER,
+    student_id TEXT,
+    roll TEXT,
+    account_status TEXT NOT NULL DEFAULT 'ACTIVE',
     created_at INTEGER NOT NULL
   );
   CREATE TABLE IF NOT EXISTS departments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     code TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS semesters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS sections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    semester_id INTEGER NOT NULL
   );
   CREATE TABLE IF NOT EXISTS courses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +112,77 @@ sqlite.exec(`
     is_read INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS exams (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    date TEXT,
+    start_time TEXT,
+    max_marks REAL NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS grades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    exam_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    marks_obtained REAL NOT NULL,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS leave_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    admin_note TEXT,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS course_materials (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL,
+    teacher_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    type TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS course_notices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL,
+    teacher_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS student_removal_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cr_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    admin_note TEXT,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
 `);
+
+const addColumnIfMissing = (table: string, column: string, definition: string) => {
+  const columns = sqlite.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!columns.some((existingColumn) => existingColumn.name === column)) {
+    sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`);
+  }
+};
+
+// CREATE TABLE IF NOT EXISTS does not update old local databases, so keep the
+// additive migrations here with the bootstrap schema.
+addColumnIfMissing('users', 'semester_id', 'semester_id INTEGER');
+addColumnIfMissing('users', 'section_id', 'section_id INTEGER');
+addColumnIfMissing('users', 'student_id', 'student_id TEXT');
+addColumnIfMissing('users', 'roll', 'roll TEXT');
+addColumnIfMissing('users', 'account_status', "account_status TEXT NOT NULL DEFAULT 'ACTIVE'");
+addColumnIfMissing('exams', 'date', 'date TEXT');
+addColumnIfMissing('exams', 'start_time', 'start_time TEXT');
 
 const db = drizzle(sqlite, { schema });
 

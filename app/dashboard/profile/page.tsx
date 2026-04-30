@@ -42,14 +42,14 @@ export default async function ProfilePage() {
                   ID: {profile.studentId}
                 </span>
               )}
-              {profile.semester && (
+              {profile.semesterId && (
                 <span className="bg-white/15 px-3 py-1 rounded-full text-xs font-bold">
-                  Semester {profile.semester}
+                  Semester {profile.semesterId}
                 </span>
               )}
-              {profile.section && (
+              {profile.sectionId && (
                 <span className="bg-white/15 px-3 py-1 rounded-full text-xs font-bold">
-                  Section {profile.section}
+                  Section {profile.sectionId}
                 </span>
               )}
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -81,7 +81,7 @@ export default async function ProfilePage() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Semester</p>
-            <p className="font-bold text-slate-900 dark:text-white">{profile.semester || '—'}</p>
+            <p className="font-bold text-slate-900 dark:text-white">{profile.semesterId || '—'}</p>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
@@ -90,7 +90,7 @@ export default async function ProfilePage() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Section</p>
-            <p className="font-bold text-slate-900 dark:text-white">{profile.section || '—'}</p>
+            <p className="font-bold text-slate-900 dark:text-white">{profile.sectionId || '—'}</p>
           </div>
         </div>
       </div>

@@ -30,8 +30,8 @@ export async function POST(req: Request) {
       role: 'STUDENT',
       studentId,
       roll,
-      semester,
-      section,
+      semesterId: semester ? parseInt(semester) : null,
+      sectionId: section ? parseInt(section) : null,
       accountStatus: 'PENDING',
       departmentId: 1 // Default department
     });

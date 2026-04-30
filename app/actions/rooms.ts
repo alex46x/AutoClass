@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { schedules, classrooms } from '@/lib/db/schema';
-import { sql } from 'drizzle-orm';
+import { and, eq, gte, notInArray, sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
 export async function getRoomOccupancyData() {
@@ -34,4 +34,50 @@ export async function getRoomOccupancyData() {
     days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     slots
   };
+}
+
+export async function findEmptyRooms(
+  dayOfWeek: number,
+  startTime: string,
+  endTime: string,
+  capacity: number,
+  needsProjector: boolean,
+  needsLab: boolean
+) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  const roomFilters = [gte(classrooms.capacity, capacity)];
+
+  if (needsProjector) {
+    roomFilters.push(eq(classrooms.hasProjector, true));
+  }
+
+  if (needsLab) {
+    roomFilters.push(eq(classrooms.isLab, true));
+  }
+
+  const busyRooms = db
+    .select({ classroomId: schedules.classroomId })
+    .from(schedules)
+    .where(and(
+      eq(schedules.dayOfWeek, dayOfWeek),
+      sql`${schedules.startTime} < ${endTime}`,
+      sql`${schedules.endTime} > ${startTime}`
+    ));
+
+  return await db
+    .select({
+      id: classrooms.id,
+      name: classrooms.name,
+      capacity: classrooms.capacity,
+      has_projector: classrooms.hasProjector,
+      is_lab: classrooms.isLab,
+    })
+    .from(classrooms)
+    .where(and(
+      ...roomFilters,
+      notInArray(classrooms.id, busyRooms)
+    ))
+    .orderBy(classrooms.name);
 }
