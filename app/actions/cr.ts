@@ -103,12 +103,17 @@ export async function getCRProfile() {
 
 export async function getCRFormData() {
   const { crUser } = await requireCR();
+  const departmentId = crUser.departmentId;
+
+  if (!departmentId) {
+    throw new Error('CR is not assigned to any department');
+  }
 
   const allCourses = await db.select({
     id: courses.id,
     name: courses.name,
     code: courses.code,
-  }).from(courses);
+  }).from(courses).where(eq(courses.departmentId, departmentId));
 
   const allClassrooms = await db.select({
     id: classrooms.id,
@@ -119,7 +124,7 @@ export async function getCRFormData() {
   const teachers = await db.select({
     id: users.id,
     name: users.name,
-  }).from(users).where(eq(users.role, 'TEACHER'));
+  }).from(users).where(and(eq(users.role, 'TEACHER'), eq(users.departmentId, departmentId)));
 
   return { courses: allCourses, classrooms: allClassrooms, teachers, crUser };
 }

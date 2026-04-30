@@ -173,6 +173,25 @@ export async function seed() {
       console.error(e);
     }
   }
+
+  // Always ensure HEAD user exists (even if admin was already seeded)
+  const existingHead = db.select().from(schema.users).where(
+    eq(schema.users.email, 'head@university.edu')
+  ).get();
+
+  if (!existingHead) {
+    const pwdHashHead = await bcrypt.hash('head123', 10);
+    db.insert(schema.users).values({
+      name: 'Prof. Grace Hopper',
+      email: 'head@university.edu',
+      passwordHash: pwdHashHead,
+      role: 'HEAD',
+      departmentId: 1,
+      designation: 'Department Head',
+      createdAt: new Date()
+    }).run();
+    console.log("Added head@university.edu");
+  }
 }
 
 // Execute seed if run directly

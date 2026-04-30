@@ -8,7 +8,9 @@ import { revalidatePath } from 'next/cache';
 
 async function requireTeacher() {
   const session = await getSession();
-  if (!session || session.role !== 'TEACHER') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'TEACHER' && session.role !== 'HEAD' && session.role !== 'ADMIN')) {
+    throw new Error('Unauthorized');
+  }
   return session;
 }
 

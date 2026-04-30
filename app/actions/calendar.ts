@@ -66,7 +66,7 @@ export async function getCalendarEvents() {
     .innerJoin(schedules, eq(courses.id, schedules.courseId))
     .innerJoin(classrooms, eq(schedules.classroomId, classrooms.id))
     .where(eq(enrollments.studentId, userId));
-  } else if (session.role === 'TEACHER') {
+  } else if (session.role === 'TEACHER' || session.role === 'HEAD') {
     regularClasses = await db.select({
       id: schedules.id,
       dayOfWeek: schedules.dayOfWeek,

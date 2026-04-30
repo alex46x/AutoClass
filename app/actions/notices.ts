@@ -27,7 +27,7 @@ export async function addCourseNotice(data: {
   message: string;
 }) {
   const session = await getSession();
-  if (!session || session.role !== 'TEACHER') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'TEACHER' && session.role !== 'HEAD')) throw new Error('Unauthorized');
 
   await db.insert(courseNotices).values({
     courseId: data.courseId,
@@ -52,7 +52,7 @@ export async function addCourseNotice(data: {
 
 export async function deleteCourseNotice(id: number) {
   const session = await getSession();
-  if (!session || session.role !== 'TEACHER') throw new Error('Unauthorized');
+  if (!session || (session.role !== 'TEACHER' && session.role !== 'HEAD')) throw new Error('Unauthorized');
 
   await db.delete(courseNotices).where(and(
     eq(courseNotices.id, id),

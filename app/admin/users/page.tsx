@@ -4,6 +4,7 @@ import DeleteUserButton from './DeleteUserButton';
 import AddUserForm from './AddUserForm';
 import RoleUpdateButton from './RoleUpdateButton';
 import UserFilters from './UserFilters';
+import EditUserModal from './EditUserModal';
 
 export default async function AdminUsersPage({
   searchParams,
@@ -71,11 +72,12 @@ export default async function AdminUsersPage({
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
                       user.role === 'ADMIN' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                      user.role === 'HEAD' ? 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400' :
                       user.role === 'TEACHER' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       user.role === 'CR' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
                       'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
                     }`}>
-                      {user.role}
+                      {user.role === 'HEAD' ? 'DEPT. HEAD' : user.role}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -95,6 +97,7 @@ export default async function AdminUsersPage({
                       {user.role !== 'ADMIN' && (
                         <>
                           <RoleUpdateButton id={user.id} currentRole={user.role} />
+                          <EditUserModal user={user} departments={departments} semesters={semesters} sections={sections} />
                           <DeleteUserButton id={user.id} name={user.name} />
                         </>
                       )}

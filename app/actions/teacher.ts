@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth';
 
 export async function getTeacherClasses() {
   const session = await getSession();
-  if (!session || session.role !== 'TEACHER') {
+  if (!session || (session.role !== 'TEACHER' && session.role !== 'HEAD')) {
     throw new Error('Unauthorized');
   }
 

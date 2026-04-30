@@ -12,9 +12,13 @@ import {
 import { eq, and, sql, gte, lte } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
-async function requireRole(role: string) {
+async function requireRole(role: string | string[]) {
   const session = await getSession();
-  if (!session || session.role !== role) throw new Error('Unauthorized');
+  if (!session) throw new Error('Unauthorized');
+  
+  const allowedRoles = Array.isArray(role) ? role : [role];
+  if (!allowedRoles.includes(session.role)) throw new Error('Unauthorized');
+  
   return session;
 }
 
@@ -75,7 +79,7 @@ export async function getStudentDashboardStats() {
 }
 
 export async function getTeacherDashboardStats() {
-  const session = await requireRole('TEACHER');
+  const session = await requireRole(['TEACHER', 'HEAD']);
   const userId = session.id;
 
   const today = new Date().toISOString().split('T')[0];

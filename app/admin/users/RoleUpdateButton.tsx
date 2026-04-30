@@ -7,7 +7,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 
 export default function RoleUpdateButton({ id, currentRole }: { id: number, currentRole: string }) {
   const [loading, setLoading] = useState(false);
-  const [targetRole, setTargetRole] = useState<'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | null>(null);
+  const [targetRole, setTargetRole] = useState<'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | 'HEAD' | null>(null);
 
   const handleRoleChange = async () => {
     if (!targetRole) return;
@@ -47,11 +47,31 @@ export default function RoleUpdateButton({ id, currentRole }: { id: number, curr
           <GraduationCap className="w-4 h-4" />
         </button>
       )}
+      {currentRole === 'TEACHER' && (
+        <button
+          onClick={() => setTargetRole('HEAD')}
+          disabled={loading}
+          className="p-1.5 rounded-lg bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-600 border border-fuchsia-200 dark:bg-fuchsia-900/20 dark:hover:bg-fuchsia-900/30 dark:border-fuchsia-900/50 transition-colors"
+          title="Promote to Department Head"
+        >
+          <ShieldAlert className="w-4 h-4" />
+        </button>
+      )}
+      {currentRole === 'HEAD' && (
+        <button
+          onClick={() => setTargetRole('TEACHER')}
+          disabled={loading}
+          className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30 dark:border-emerald-900/50 transition-colors"
+          title="Demote to Teacher"
+        >
+          <GraduationCap className="w-4 h-4" />
+        </button>
+      )}
 
       <ConfirmModal 
         isOpen={!!targetRole}
         title="Change Role?"
-        message={`Are you sure you want to change this user's role to ${targetRole}?`}
+        message={`Are you sure you want to change this user's role to ${targetRole === 'HEAD' ? 'Department Head' : targetRole}?`}
         confirmLabel="Change Role"
         variant="primary"
         onConfirm={handleRoleChange}

@@ -181,6 +181,7 @@ addColumnIfMissing('users', 'section_id', 'section_id INTEGER');
 addColumnIfMissing('users', 'student_id', 'student_id TEXT');
 addColumnIfMissing('users', 'roll', 'roll TEXT');
 addColumnIfMissing('users', 'account_status', "account_status TEXT NOT NULL DEFAULT 'ACTIVE'");
+addColumnIfMissing('users', 'designation', "designation TEXT NOT NULL DEFAULT 'Lecturer'");
 addColumnIfMissing('exams', 'date', 'date TEXT');
 addColumnIfMissing('exams', 'start_time', 'start_time TEXT');
 

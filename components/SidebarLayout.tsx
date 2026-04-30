@@ -31,7 +31,14 @@ const navItems: Record<string, NavItem[]> = {
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes' },
     { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
-    { icon: CalendarIcon, label: 'Calendar', href: '/dashboard/calendar' },
+    { icon: CalendarIcon, label: 'Calendar', href: '/teacher/calendar' },
+  ],
+  HEAD: [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
+    { icon: Users, label: 'Faculty & Students', href: '/teacher/faculty', divider: 'Department Head' },
+    { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes', divider: 'Teacher' },
+    { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
+    { icon: CalendarIcon, label: 'Calendar', href: '/teacher/calendar' },
   ],
   CR: [
     // ── Student Features ─────────────────────────

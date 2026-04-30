@@ -12,7 +12,7 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
   const [formData, setFormData] = useState({ 
     name: '', 
     email: '', 
-    role: 'STUDENT',
+    role: 'TEACHER',
     departmentId: '',
     semesterId: '',
     sectionId: ''
@@ -32,7 +32,7 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
         sectionId: formData.sectionId ? parseInt(formData.sectionId) : undefined,
       });
       setIsOpen(false);
-      setFormData({ name: '', email: '', role: 'STUDENT', departmentId: '', semesterId: '', sectionId: '' });
+      setFormData({ name: '', email: '', role: 'TEACHER', departmentId: '', semesterId: '', sectionId: '' });
     } catch (err: any) {
       setError(err.message || 'Failed to create user');
     } finally {
@@ -103,14 +103,14 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                     onChange={(e) => setFormData({...formData, role: e.target.value})}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="STUDENT">Student</option>
                     <option value="TEACHER">Teacher</option>
                     <option value="CR">Class Representative (CR)</option>
                     <option value="ADMIN">Administrator</option>
+                    <option value="HEAD">Department Head</option>
                   </select>
                 </div>
 
-                {(formData.role === 'STUDENT' || formData.role === 'CR' || formData.role === 'TEACHER') && (
+                {(formData.role === 'CR' || formData.role === 'TEACHER' || formData.role === 'HEAD') && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
                     <select 
@@ -124,7 +124,7 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                   </div>
                 )}
 
-                {(formData.role === 'STUDENT' || formData.role === 'CR') && (
+                {formData.role === 'CR' && (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Semester</label>
