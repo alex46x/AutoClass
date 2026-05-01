@@ -317,7 +317,7 @@ export async function removeDepartmentSection(sectionId: number) {
 export async function shiftStudentSection(studentId: number, newSectionId: number | null) {
   const session = await requireHead();
   
-  // Verify student is in this department
+  // Verify student is in this department Department
   const student = await db.select().from(users)
     .where(and(eq(users.id, studentId), eq(users.departmentId, session.departmentId!)))
     .get();
