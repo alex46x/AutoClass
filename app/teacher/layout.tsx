@@ -10,10 +10,10 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   }
 
   // Prevent other roles from accessing the base dashboard
-  if (session.role !== 'TEACHER' && session.role !== 'ADMIN') redirect('/dashboard');
+  if (session.role !== 'TEACHER' && session.role !== 'HEAD' && session.role !== 'ADMIN') redirect('/dashboard');
 
   return (
-    <SidebarLayout role="TEACHER" userName={session.name}>
+    <SidebarLayout role={session.role} userName={session.name}>
       {children}
     </SidebarLayout>
   );

@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
       const role = payload.role as string;
       let redirectUrl = '/dashboard';
       if (role === 'ADMIN') redirectUrl = '/admin';
-      else if (role === 'TEACHER') redirectUrl = '/teacher';
+      else if (role === 'TEACHER' || role === 'HEAD') redirectUrl = '/teacher';
       else if (role === 'CR') redirectUrl = '/cr';
       
       return NextResponse.redirect(new URL(redirectUrl, request.url));

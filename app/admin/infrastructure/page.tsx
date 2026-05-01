@@ -1,9 +1,12 @@
-import { getClassrooms } from '@/app/actions/admin';
-import { MapPin, Users, Monitor, Beaker } from 'lucide-react';
+import { getClassrooms, getDepartments } from '@/app/actions/admin';
+import { MapPin, Users, Monitor, Beaker, Building2 } from 'lucide-react';
 import AddClassroomForm from './AddClassroomForm';
+import AddDepartmentForm from './AddDepartmentForm';
+import EditDepartmentModal from './EditDepartmentModal';
 
 export default async function AdminInfrastructurePage() {
   const classrooms = await getClassrooms();
+  const departments = await getDepartments();
 
   return (
     <div className="space-y-6">
@@ -16,10 +19,43 @@ export default async function AdminInfrastructurePage() {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage university classrooms, labs, and capacities.</p>
         </div>
         
-        <AddClassroomForm />
+        <div className="flex items-center gap-2">
+          <AddDepartmentForm />
+          <AddClassroomForm />
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Departments Section */}
+      <section className="mb-12">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
+          <Building2 className="w-5 h-5 text-indigo-500" /> Departments
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {departments.map(dept => (
+            <div key={dept.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors group relative">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white flex flex-col">
+                  {dept.name}
+                  <span className="text-sm font-semibold text-indigo-500 uppercase tracking-wider mt-1">{dept.code}</span>
+                </h4>
+                <EditDepartmentModal department={dept} />
+              </div>
+            </div>
+          ))}
+          {departments.length === 0 && (
+            <div className="col-span-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 text-center text-slate-500 border border-slate-200 dark:border-slate-800">
+              No departments configured yet.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Classrooms Section */}
+      <section>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-6">
+          <MapPin className="w-5 h-5 text-amber-500" /> Classrooms & Labs
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {classrooms.map(room => (
           <div key={room.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:border-amber-400 dark:hover:border-amber-500 transition-colors group relative overflow-hidden">
              <div className="flex justify-between items-start mb-4">
@@ -55,7 +91,8 @@ export default async function AdminInfrastructurePage() {
             No classrooms found in the system.
           </div>
         )}
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

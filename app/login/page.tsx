@@ -33,7 +33,7 @@ export default function LoginPage() {
       if (res.ok) {
         const { user } = await res.json();
         if (user.role === 'ADMIN') router.push('/admin');
-        else if (user.role === 'TEACHER') router.push('/teacher');
+        else if (user.role === 'TEACHER' || user.role === 'HEAD') router.push('/teacher');
         else if (user.role === 'CR') router.push('/cr');
         else router.push('/dashboard');
         
@@ -178,6 +178,7 @@ export default function LoginPage() {
            <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex flex-col gap-2 items-center font-mono text-xs text-slate-500 dark:text-slate-400">
              <div>student@university.edu (student123)</div>
              <div>teacher@university.edu (teacher123)</div>
+             <div>head@university.edu (head123)</div>
              <div>cr@university.edu (cr123)</div>
              <div>admin@university.edu (admin123)</div>
            </div>

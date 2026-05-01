@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Prevent other roles from accessing the base dashboard
   if (session.role === 'ADMIN') redirect('/admin');
-  if (session.role === 'TEACHER') redirect('/teacher');
+  if (session.role === 'TEACHER' || session.role === 'HEAD') redirect('/teacher');
   // CR can access dashboard (they are also students)
 
   return (

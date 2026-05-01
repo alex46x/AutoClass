@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, CheckCheck, Inbox } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { markAllRead } from '@/app/actions/notifications';
+import { markAllRead, markOneRead } from '@/app/actions/notifications';
 
 interface Notification {
   id: number;
@@ -17,6 +17,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -53,6 +54,16 @@ export default function NotificationBell() {
   const handleMarkAll = async () => {
     await markAllRead();
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  };
+
+  const handleSelect = async (n: Notification) => {
+    setSelectedNotification(n);
+    if (!n.isRead) {
+      await markOneRead(n.id);
+      setNotifications(notifications.map(notif => 
+        notif.id === n.id ? { ...notif, isRead: true } : notif
+      ));
+    }
   };
 
   const timeAgo = (date: Date) => {
@@ -127,16 +138,26 @@ export default function NotificationBell() {
                   {notifications.map(n => (
                     <div
                       key={n.id}
-                      className={`px-5 py-4 transition-colors ${!n.isRead ? 'bg-indigo-50/70 dark:bg-indigo-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                      onClick={() => handleSelect(n)}
+                      className={`px-5 py-4 cursor-pointer transition-colors ${!n.isRead ? 'bg-indigo-50/70 dark:bg-indigo-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
                     >
                       <div className="flex items-start gap-3">
                         {!n.isRead && <span className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0" />}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-bold ${!n.isRead ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <p className={`text-sm font-bold truncate ${!n.isRead ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                             {n.title}
                           </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{n.message}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-medium">
+                          <div className="mt-0.5">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 break-words">
+                              {n.message}
+                            </p>
+                            {n.message.length > 80 && (
+                              <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold mt-1 inline-block">
+                                ... see more
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-medium">
                             {timeAgo(n.createdAt)}
                           </p>
                         </div>
@@ -147,6 +168,44 @@ export default function NotificationBell() {
               )}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selectedNotification && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#fcfcfc] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] my-auto"
+            >
+              {/* Header - Navy Blue Gradient */}
+              <div className="bg-gradient-to-r from-[#000080] via-[#001f5c] to-[#000080] px-6 py-5 sm:py-6 relative shrink-0 flex items-center justify-center">
+                <h3 className="text-xl font-bold text-white text-center px-10 sm:px-16 break-words max-w-full">
+                  {selectedNotification.title}
+                </h3>
+                <button
+                  onClick={() => setSelectedNotification(null)}
+                  className="absolute right-4 top-4 sm:right-5 sm:top-5 text-white/80 hover:text-white transition-colors flex items-center justify-center p-1.5 rounded-full hover:bg-white/10"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Body - Scrollable & Center Aligned */}
+              <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar flex-1 flex flex-col justify-center text-center">
+                <p className="text-slate-800 text-lg leading-relaxed font-medium whitespace-pre-wrap">
+                  {selectedNotification.message}
+                </p>
+                
+                <div className="mt-8 pt-4 border-t border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider flex justify-center gap-2 items-center">
+                  <span>Received:</span>
+                  <span>{new Date(selectedNotification.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

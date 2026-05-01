@@ -2,12 +2,26 @@ import { getCourses, getDepartments, getSemesters, getSections } from '@/app/act
 import { BookOpen, Hash } from 'lucide-react';
 import AddCourseForm from './AddCourseForm';
 import SemesterManager from './SemesterManager';
+import CourseFilters from './CourseFilters';
+import EditCourseModal from './EditCourseModal';
 
-export default async function AdminCoursesPage() {
-  const courses = await getCourses();
+export default async function AdminCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const allCourses = await getCourses();
   const departments = await getDepartments();
   const semesters = await getSemesters();
   const sections = await getSections();
+
+  const params = await searchParams;
+  const deptFilter = params.departmentId as string;
+
+  const courses = allCourses.filter(course => {
+    if (deptFilter && course.departmentId !== parseInt(deptFilter)) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -23,6 +37,8 @@ export default async function AdminCoursesPage() {
         <AddCourseForm departments={departments} />
       </header>
 
+      <CourseFilters departments={departments} />
+
       <SemesterManager semesters={semesters} sections={sections} />
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
@@ -34,6 +50,7 @@ export default async function AdminCoursesPage() {
                 <th className="px-6 py-4 font-semibold">Course Name</th>
                 <th className="px-6 py-4 font-semibold">Credits</th>
                 <th className="px-6 py-4 font-semibold">Department</th>
+                <th className="px-6 py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -52,6 +69,9 @@ export default async function AdminCoursesPage() {
                   </td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                     {course.departmentName || 'Unknown'}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <EditCourseModal course={course} departments={departments} />
                   </td>
                 </tr>
               ))}

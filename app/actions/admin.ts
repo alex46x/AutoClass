@@ -62,6 +62,20 @@ export async function createUser(data: { name: string; email: string; role: stri
   revalidatePath('/admin/users');
 }
 
+export async function updateUser(id: number, data: { name?: string; email?: string; role?: string; departmentId?: number | null; semesterId?: number | null; sectionId?: number | null }) {
+  await requireAdmin();
+
+  if (data.role === 'CR' && data.sectionId) {
+    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, data.sectionId)));
+    if (existingCRs.length >= 2 && !existingCRs.some(cr => cr.id === id)) {
+      throw new Error("Maximum 2 CRs allowed per class section");
+    }
+  }
+
+  await db.update(users).set(data).where(eq(users.id, id));
+  revalidatePath('/admin/users');
+}
+
 export async function deleteUser(id: number) {
   await requireAdmin();
   await db.delete(users).where(eq(users.id, id));
@@ -77,6 +91,12 @@ export async function getDepartments() {
 export async function createDepartment(data: { name: string; code: string }) {
   await requireAdmin();
   await db.insert(departments).values(data);
+  revalidatePath('/admin/infrastructure');
+}
+
+export async function updateDepartment(id: number, data: { name: string; code: string }) {
+  await requireAdmin();
+  await db.update(departments).set(data).where(eq(departments.id, id));
   revalidatePath('/admin/infrastructure');
 }
 
@@ -99,6 +119,7 @@ export async function getCourses() {
     name: courses.name,
     code: courses.code,
     credits: courses.credits,
+    departmentId: courses.departmentId,
     departmentName: departments.name
   }).from(courses).leftJoin(departments, eq(courses.departmentId, departments.id)).orderBy(courses.name);
 }
@@ -106,6 +127,12 @@ export async function getCourses() {
 export async function createCourse(data: { name: string; code: string; credits: number; departmentId: number }) {
   await requireAdmin();
   await db.insert(courses).values(data);
+  revalidatePath('/admin/courses');
+}
+
+export async function updateCourse(id: number, data: { name: string; code: string; credits: number; departmentId: number }) {
+  await requireAdmin();
+  await db.update(courses).set(data).where(eq(courses.id, id));
   revalidatePath('/admin/courses');
 }
 
@@ -196,7 +223,7 @@ export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED'
   revalidatePath('/admin/users');
 }
 
-export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN') {
+export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | 'HEAD') {
   await requireAdmin();
 
   if (role === 'CR') {

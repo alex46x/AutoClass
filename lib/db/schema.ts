@@ -11,6 +11,7 @@ export const users = sqliteTable('users', {
   sectionId: integer('section_id'),
   studentId: text('student_id'),
   roll: text('roll'),
+  designation: text('designation').notNull().default('Lecturer'), // For TEACHER and HEAD roles
   accountStatus: text('account_status').notNull().default('ACTIVE'), // 'PENDING', 'ACTIVE', 'REJECTED'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
@@ -31,6 +32,7 @@ export const sections = sqliteTable('sections', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   semesterId: integer('semester_id').notNull(),
+  departmentId: integer('department_id'),
 });
 
 export const courses = sqliteTable('courses', {
