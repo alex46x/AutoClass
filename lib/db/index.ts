@@ -184,6 +184,9 @@ addColumnIfMissing('users', 'account_status', "account_status TEXT NOT NULL DEFA
 addColumnIfMissing('users', 'designation', "designation TEXT NOT NULL DEFAULT 'Lecturer'");
 addColumnIfMissing('exams', 'date', 'date TEXT');
 addColumnIfMissing('exams', 'start_time', 'start_time TEXT');
+addColumnIfMissing('sections', 'max_students', 'max_students INTEGER NOT NULL DEFAULT 40');
+addColumnIfMissing('sections', 'department_id', 'department_id INTEGER');
+addColumnIfMissing('semesters', 'department_id', 'department_id INTEGER');
 
 const db = drizzle(sqlite, { schema });
 

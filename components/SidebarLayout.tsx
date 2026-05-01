@@ -36,6 +36,7 @@ const navItems: Record<string, NavItem[]> = {
   HEAD: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
     { icon: Users, label: 'Faculty & Students', href: '/teacher/faculty', divider: 'Department Head' },
+    { icon: BookOpen, label: 'Sections', href: '/teacher/sections' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes', divider: 'Teacher' },
     { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
     { icon: CalendarIcon, label: 'Calendar', href: '/teacher/calendar' },
@@ -62,6 +63,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: Users, label: 'User Management', href: '/admin/users' },
     { icon: MapPin, label: 'Infrastructure', href: '/admin/infrastructure' },
     { icon: BookOpen, label: 'Academic Setup', href: '/admin/courses' },
+    { icon: BookOpen, label: 'Sections', href: '/admin/sections' },
     { icon: CheckSquare, label: 'Approvals', href: '/admin/approvals' },
     { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
     { icon: Megaphone, label: 'Broadcast', href: '/admin/broadcast' },

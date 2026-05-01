@@ -25,6 +25,7 @@ export const departments = sqliteTable('departments', {
 export const semesters = sqliteTable('semesters', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  departmentId: integer('department_id'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
@@ -33,6 +34,7 @@ export const sections = sqliteTable('sections', {
   name: text('name').notNull(),
   semesterId: integer('semester_id').notNull(),
   departmentId: integer('department_id'),
+  maxStudents: integer('max_students').notNull().default(40),
 });
 
 export const courses = sqliteTable('courses', {

@@ -1,8 +1,8 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { users, studentRemovalRequests, notifications } from '@/lib/db/schema';
-import { eq, and, ne, or, inArray } from 'drizzle-orm';
+import { users, studentRemovalRequests, notifications, semesters, sections } from '@/lib/db/schema';
+import { eq, and, ne, or, inArray, sql } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { sendNotification } from './notifications';
@@ -157,6 +157,7 @@ export async function getDepartmentStudents() {
     roll: users.roll,
     accountStatus: users.accountStatus,
     role: users.role,
+    sectionId: users.sectionId,
   })
   .from(users)
   .where(and(
@@ -165,6 +166,7 @@ export async function getDepartmentStudents() {
   ))
   .orderBy(users.name);
 }
+
 
 export async function removeStudentFromDepartment(studentId: number, reason: string) {
   const session = await requireHead();
@@ -223,4 +225,134 @@ export async function getPendingRemovalsForDept() {
   }
 
   return enriched;
+}
+
+// ── Section Management ─────────────────────────────────────────────────────────
+
+export async function getSemestersForHead() {
+  const session = await requireHead();
+  return await db.select().from(semesters)
+    .where(eq(semesters.departmentId, session.departmentId!))
+    .orderBy(semesters.createdAt);
+}
+
+export async function getDepartmentSections(semesterId?: number) {
+  const session = await requireHead();
+  
+  const baseSelect = db.select({
+    id: sections.id,
+    name: sections.name,
+    semesterId: sections.semesterId,
+    departmentId: sections.departmentId,
+    maxStudents: sections.maxStudents,
+    semesterName: semesters.name
+  })
+  .from(sections)
+  .innerJoin(semesters, eq(sections.semesterId, semesters.id));
+  
+  if (semesterId) {
+    return await baseSelect
+      .where(and(
+        eq(sections.departmentId, session.departmentId!),
+        eq(sections.semesterId, semesterId)
+      ))
+      .orderBy(sections.name);
+  }
+  
+  return await baseSelect
+    .where(eq(sections.departmentId, session.departmentId!))
+    .orderBy(sections.name);
+}
+
+
+
+export async function addDepartmentSection(semesterId: number, name: string, maxStudents: number) {
+  const session = await requireHead();
+  
+  await db.insert(sections).values({
+    name,
+    semesterId,
+    departmentId: session.departmentId!,
+    maxStudents,
+  });
+  
+  revalidatePath('/teacher/sections');
+}
+
+export async function editDepartmentSection(sectionId: number, name: string, maxStudents: number) {
+  const session = await requireHead();
+  
+  const section = await db.select().from(sections)
+    .where(and(eq(sections.id, sectionId), eq(sections.departmentId, session.departmentId!)))
+    .get();
+    
+  if (!section) throw new Error('Section not found or unauthorized');
+
+  await db.update(sections)
+    .set({ name, maxStudents })
+    .where(eq(sections.id, sectionId));
+    
+  revalidatePath('/teacher/sections');
+}
+
+export async function removeDepartmentSection(sectionId: number) {
+  const session = await requireHead();
+  
+  const section = await db.select().from(sections)
+    .where(and(eq(sections.id, sectionId), eq(sections.departmentId, session.departmentId!)))
+    .get();
+    
+  if (!section) throw new Error('Section not found or unauthorized');
+
+  // Unassign students in this section
+  await db.update(users)
+    .set({ sectionId: null })
+    .where(eq(users.sectionId, sectionId));
+
+  await db.delete(sections).where(eq(sections.id, sectionId));
+  
+  revalidatePath('/teacher/sections');
+}
+
+export async function shiftStudentSection(studentId: number, newSectionId: number | null) {
+  const session = await requireHead();
+  
+  // Verify student is in this department
+  const student = await db.select().from(users)
+    .where(and(eq(users.id, studentId), eq(users.departmentId, session.departmentId!)))
+    .get();
+    
+  if (!student) throw new Error('Student not found in your department');
+
+  if (newSectionId) {
+    const section = await db.select().from(sections)
+      .where(eq(sections.id, newSectionId))
+      .get();
+    if (!section) throw new Error('Section not found');
+
+    // Check capacity
+    const currentStudents = await db.select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.sectionId, newSectionId))
+      .get();
+      
+    if (currentStudents && currentStudents.count >= section.maxStudents) {
+      throw new Error(`Cannot shift student. Section "${section.name}" is already at maximum capacity (${section.maxStudents}).`);
+    }
+  }
+
+  await db.update(users)
+    .set({ sectionId: newSectionId })
+    .where(eq(users.id, studentId));
+
+  if (newSectionId) {
+    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
+    await sendNotification(
+      studentId,
+      '🏫 Section Updated',
+      `Your Department Head has assigned you to a new section: ${section?.name}.`
+    );
+  }
+
+  revalidatePath('/teacher/sections');
 }

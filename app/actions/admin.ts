@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { users, departments, classrooms, courses, makeupClasses, enrollments, notifications, semesters, sections, studentRemovalRequests } from '@/lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, or } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
@@ -248,34 +248,142 @@ export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | '
 }
 
 
-// Semesters & Sections
-export async function getSemesters() {
+// Semesters & Sections (per department)
+export async function getSemesters(departmentId?: number) {
   await requireAdmin();
+  if (departmentId) {
+    return await db.select().from(semesters)
+      .where(eq(semesters.departmentId, departmentId))
+      .orderBy(semesters.createdAt);
+  }
   return await db.select().from(semesters).orderBy(semesters.createdAt);
 }
 
-export async function createSemester(name: string) {
+export async function createSemester(name: string, departmentId: number) {
   await requireAdmin();
-  await db.insert(semesters).values({ name });
-  revalidatePath('/admin/infrastructure');
+  await db.insert(semesters).values({ name, departmentId });
+  revalidatePath('/admin/courses');
 }
 
 export async function updateSemester(id: number, name: string) {
   await requireAdmin();
   await db.update(semesters).set({ name }).where(eq(semesters.id, id));
-  revalidatePath('/admin/infrastructure');
+  revalidatePath('/admin/courses');
 }
 
-export async function getSections() {
+export async function getSections(departmentId?: number) {
   await requireAdmin();
+  if (departmentId) {
+    return await db.select().from(sections)
+      .where(eq(sections.departmentId, departmentId))
+      .orderBy(sections.name);
+  }
   return await db.select().from(sections).orderBy(sections.name);
 }
 
-export async function createSection(name: string, semesterId: number) {
+export async function createSection(name: string, semesterId: number, maxStudents: number, departmentId?: number) {
   await requireAdmin();
-  await db.insert(sections).values({ name, semesterId });
-  revalidatePath('/admin/infrastructure');
+  await db.insert(sections).values({ name, semesterId, maxStudents, departmentId: departmentId ?? null });
+  revalidatePath('/admin/courses');
 }
+
+// ── Admin Section Management (global, per-department) ─────────────────────────
+
+export async function getAdminSections(semesterId?: number, departmentId?: number) {
+  await requireAdmin();
+  
+  let baseQuery = db.select({
+    id: sections.id,
+    name: sections.name,
+    semesterId: sections.semesterId,
+    departmentId: sections.departmentId,
+    maxStudents: sections.maxStudents,
+    semesterName: semesters.name
+  })
+  .from(sections)
+  .innerJoin(semesters, eq(sections.semesterId, semesters.id));
+
+  if (semesterId && departmentId) {
+    return await baseQuery
+      .where(and(eq(sections.semesterId, semesterId), eq(sections.departmentId, departmentId)))
+      .orderBy(sections.name);
+  } else if (semesterId) {
+    return await baseQuery
+      .where(eq(sections.semesterId, semesterId))
+      .orderBy(sections.name);
+  } else if (departmentId) {
+    return await baseQuery
+      .where(eq(sections.departmentId, departmentId))
+      .orderBy(sections.name);
+  }
+  
+  return await baseQuery.orderBy(sections.name);
+}
+
+export async function addAdminSection(semesterId: number, departmentId: number, name: string, maxStudents: number) {
+  await requireAdmin();
+  await db.insert(sections).values({ name, semesterId, departmentId, maxStudents });
+  revalidatePath('/admin/sections');
+}
+
+export async function editAdminSection(sectionId: number, name: string, maxStudents: number) {
+  await requireAdmin();
+  await db.update(sections).set({ name, maxStudents }).where(eq(sections.id, sectionId));
+  revalidatePath('/admin/sections');
+}
+
+export async function removeAdminSection(sectionId: number) {
+  await requireAdmin();
+  // Unassign students
+  await db.update(users).set({ sectionId: null }).where(eq(users.sectionId, sectionId));
+  await db.delete(sections).where(eq(sections.id, sectionId));
+  revalidatePath('/admin/sections');
+}
+
+export async function adminShiftStudent(studentId: number, newSectionId: number | null) {
+  await requireAdmin();
+  
+  if (newSectionId) {
+    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
+    if (!section) throw new Error('Section not found');
+    
+    const { count } = await db.select({ count: sql<number>`count(*)` })
+      .from(users).where(eq(users.sectionId, newSectionId)).get() ?? { count: 0 };
+      
+    if (count >= section.maxStudents) {
+      throw new Error(`Section "${section.name}" is at maximum capacity (${section.maxStudents}).`);
+    }
+  }
+  
+  await db.update(users).set({ sectionId: newSectionId }).where(eq(users.id, studentId));
+  
+  if (newSectionId) {
+    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
+    await sendNotification(studentId, '🏫 Section Updated', `Your section has been updated to: ${section?.name}.`);
+  }
+  
+  revalidatePath('/admin/sections');
+}
+
+export async function getStudentsByDepartment(departmentId: number) {
+  await requireAdmin();
+  return await db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    studentId: users.studentId,
+    sectionId: users.sectionId,
+    role: users.role,
+  }).from(users)
+    .where(and(
+      eq(users.departmentId, departmentId),
+      or(eq(users.role, 'STUDENT'), eq(users.role, 'CR')),
+      eq(users.accountStatus, 'ACTIVE')
+    ))
+    .orderBy(users.name);
+}
+
+
 
 // ── Student Removal Requests ──────────────────────────────────────────────────
 
