@@ -1,10 +1,11 @@
-import { getUsers, getDepartments, getSemesters, getSections } from '@/app/actions/admin';
+import { getUsers, getDepartments, getSemesters, getSections, getCourses } from '@/app/actions/admin';
 import { Users as UsersIcon, Mail } from 'lucide-react';
 import DeleteUserButton from './DeleteUserButton';
 import AddUserForm from './AddUserForm';
 import RoleUpdateButton from './RoleUpdateButton';
 import UserFilters from './UserFilters';
 import EditUserModal from './EditUserModal';
+import ResetPasswordButton from './ResetPasswordButton';
 
 export default async function AdminUsersPage({
   searchParams,
@@ -15,6 +16,7 @@ export default async function AdminUsersPage({
   const departments = await getDepartments();
   const semesters = await getSemesters();
   const sections = await getSections();
+  const courses = await getCourses();
   
   const params = await searchParams;
   const roleFilter = params.role as string;
@@ -35,7 +37,7 @@ export default async function AdminUsersPage({
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <UsersIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <UsersIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" suppressHydrationWarning />
             User Management
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage students, teachers, and system administrators.</p>
@@ -52,7 +54,7 @@ export default async function AdminUsersPage({
             <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-6 py-4 font-semibold">Name</th>
-                <th className="px-6 py-4 font-semibold">Role</th>
+                <th className="px-6 py-4 font-semibold">Role & ID</th>
                 <th className="px-6 py-4 font-semibold">Department & Class</th>
                 <th className="px-6 py-4 font-semibold">Email</th>
                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
@@ -70,15 +72,19 @@ export default async function AdminUsersPage({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                      user.role === 'ADMIN' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
-                      user.role === 'HEAD' ? 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400' :
-                      user.role === 'TEACHER' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      user.role === 'CR' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                      'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                    }`}>
-                      {user.role === 'HEAD' ? 'DEPT. HEAD' : user.role}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`w-fit px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                        user.role === 'ADMIN' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                        user.role === 'HEAD' ? 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-400' :
+                        user.role === 'TEACHER' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        user.role === 'CR' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                        'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      }`}>
+                        {user.role === 'HEAD' ? 'DEPT. HEAD' : user.role}
+                      </span>
+                      <span className="font-mono text-xs text-slate-500">{user.uniqueId || user.studentId || `user-${user.id}`}</span>
+                      {user.roll && <span className="text-xs text-slate-400">Roll: {user.roll}</span>}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
@@ -89,15 +95,16 @@ export default async function AdminUsersPage({
                   </td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" /> {user.email}
+                      <Mail className="w-4 h-4" suppressHydrationWarning /> {user.email}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <ResetPasswordButton id={user.id} name={user.name} />
                       {user.role !== 'ADMIN' && (
                         <>
                           <RoleUpdateButton id={user.id} currentRole={user.role} />
-                          <EditUserModal user={user} departments={departments} semesters={semesters} sections={sections} />
+                          <EditUserModal user={user} departments={departments} semesters={semesters} sections={sections} courses={courses} />
                           <DeleteUserButton id={user.id} name={user.name} />
                         </>
                       )}

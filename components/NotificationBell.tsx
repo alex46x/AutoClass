@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Bell, X, CheckCheck, Inbox } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { markAllRead, markOneRead } from '@/app/actions/notifications';
@@ -22,7 +22,7 @@ export default function NotificationBell() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch('/api/notifications');
       if (res.ok) {
@@ -31,14 +31,19 @@ export default function NotificationBell() {
       }
     } catch {}
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    const timeout = window.setTimeout(() => {
+      void fetchNotifications();
+    }, 0);
     // Poll every 30 seconds for new notifications
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      window.clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [fetchNotifications]);
 
   // Close on outside click
   useEffect(() => {
@@ -83,7 +88,7 @@ export default function NotificationBell() {
         className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+        <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" suppressHydrationWarning />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -103,7 +108,7 @@ export default function NotificationBell() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Bell className="w-4 h-4 text-indigo-500" />
+                <Bell className="w-4 h-4 text-indigo-500" suppressHydrationWarning />
                 Notifications
                 {unreadCount > 0 && (
                   <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{unreadCount}</span>
@@ -115,11 +120,11 @@ export default function NotificationBell() {
                     onClick={handleMarkAll}
                     className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 transition-colors"
                   >
-                    <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+                    <CheckCheck className="w-3.5 h-3.5" suppressHydrationWarning /> Mark all read
                   </button>
                 )}
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" suppressHydrationWarning />
                 </button>
               </div>
             </div>
@@ -130,8 +135,8 @@ export default function NotificationBell() {
                 <div className="p-8 text-center text-slate-400 text-sm">Loading...</div>
               ) : notifications.length === 0 ? (
                 <div className="p-10 text-center flex flex-col items-center gap-3">
-                  <Inbox className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">You're all caught up!</p>
+                  <Inbox className="w-10 h-10 text-slate-300 dark:text-slate-600" suppressHydrationWarning />
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">You&apos;re all caught up!</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -188,7 +193,7 @@ export default function NotificationBell() {
                   onClick={() => setSelectedNotification(null)}
                   className="absolute right-4 top-4 sm:right-5 sm:top-5 text-white/80 hover:text-white transition-colors flex items-center justify-center p-1.5 rounded-full hover:bg-white/10"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-6 h-6" suppressHydrationWarning />
                 </button>
               </div>
 

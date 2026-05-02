@@ -14,16 +14,59 @@ async function requireAdmin() {
   return session;
 }
 
+const STANDARD_SEMESTERS = [
+  '1st Year 1st Semester',
+  '1st Year 2nd Semester',
+  '2nd Year 1st Semester',
+  '2nd Year 2nd Semester',
+  '3rd Year 1st Semester',
+  '3rd Year 2nd Semester',
+  '4th Year 1st Semester',
+  '4th Year 2nd Semester',
+];
+
+const DEFAULT_DEPARTMENTS = [
+  { name: 'Computer Science and Engineering', code: 'CSE' },
+  { name: 'Electrical and Electronic Engineering', code: 'EEE' },
+  { name: 'Civil Engineering', code: 'CE' },
+  { name: 'Business Administration', code: 'BBA' },
+  { name: 'English', code: 'ENG' },
+  { name: 'Law', code: 'LAW' },
+  { name: 'Pharmacy', code: 'PHARM' },
+  { name: 'Economics', code: 'ECO' },
+  { name: 'Mathematics', code: 'MATH' },
+  { name: 'Architecture', code: 'ARCH' },
+];
+
+async function ensureStandardSemesters(departmentId: number) {
+  const existingSemesters = await db.select({ name: semesters.name })
+    .from(semesters)
+    .where(eq(semesters.departmentId, departmentId));
+
+  const existingNames = new Set(existingSemesters.map(semester => semester.name));
+  const missingSemesters = STANDARD_SEMESTERS
+    .filter(name => !existingNames.has(name))
+    .map(name => ({ name, departmentId }));
+
+  if (missingSemesters.length > 0) {
+    await db.insert(semesters).values(missingSemesters);
+  }
+}
+
 export async function getUsers() {
   await requireAdmin();
   return await db.select({
     id: users.id,
     name: users.name,
     email: users.email,
+    uniqueId: users.uniqueId,
     role: users.role,
     departmentId: users.departmentId,
     semesterId: users.semesterId,
     sectionId: users.sectionId,
+    studentId: users.studentId,
+    roll: users.roll,
+    designation: users.designation,
     accountStatus: users.accountStatus,
     createdAt: users.createdAt,
     departmentName: departments.name,
@@ -37,11 +80,56 @@ export async function getUsers() {
   .orderBy(users.name);
 }
 
-export async function createUser(data: { name: string; email: string; role: string; departmentId?: number; semesterId?: number; sectionId?: number }) {
+export async function getUserCourseIds(userId: number) {
   await requireAdmin();
+  const rows = await db.select({ courseId: enrollments.courseId })
+    .from(enrollments)
+    .where(eq(enrollments.studentId, userId));
+  return rows.map(row => row.courseId);
+}
+
+function normalizeRoleMetadata(role: string, data: { departmentId?: number | null; semesterId?: number | null; sectionId?: number | null; designation?: string | null }) {
+  return {
+    departmentId: role === 'ADMIN' ? null : data.departmentId ?? null,
+    semesterId: role === 'STUDENT' || role === 'CR' ? data.semesterId ?? null : null,
+    sectionId: role === 'STUDENT' || role === 'CR' ? data.sectionId ?? null : null,
+    designation: role === 'HEAD' ? 'Department Head' : role === 'TEACHER' ? data.designation || 'Lecturer' : data.designation ?? 'Lecturer',
+  };
+}
+
+export async function createUser(data: {
+  name: string;
+  email: string;
+  uniqueId?: string;
+  role: string;
+  departmentId?: number;
+  semesterId?: number;
+  sectionId?: number;
+  studentId?: string;
+  roll?: string;
+  designation?: string;
+}) {
+  await requireAdmin();
+  const uniqueId = data.uniqueId?.trim() || data.studentId?.trim() || data.email.split('@')[0];
+  const targetSection = data.sectionId
+    ? await db.select().from(sections).where(eq(sections.id, data.sectionId)).get()
+    : null;
+
+  if (data.sectionId && !targetSection) {
+    throw new Error('Section not found');
+  }
+
+  const assignmentData = targetSection
+    ? {
+        ...data,
+        departmentId: targetSection.departmentId ?? data.departmentId,
+        semesterId: targetSection.semesterId,
+        sectionId: targetSection.id,
+      }
+    : data;
   
-  if (data.role === 'CR' && data.sectionId) {
-    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, data.sectionId)));
+  if (assignmentData.role === 'CR' && assignmentData.sectionId) {
+    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, assignmentData.sectionId)));
     if (existingCRs.length >= 2) {
       throw new Error("Maximum 2 CRs allowed per class section");
     }
@@ -52,34 +140,119 @@ export async function createUser(data: { name: string; email: string; role: stri
   await db.insert(users).values({
     name: data.name,
     email: data.email,
+    uniqueId,
     passwordHash,
-    role: data.role,
-    departmentId: data.departmentId || null,
-    semesterId: data.semesterId || null,
-    sectionId: data.sectionId || null,
+    role: assignmentData.role,
+    studentId: data.studentId || null,
+    roll: data.roll || null,
+    ...normalizeRoleMetadata(assignmentData.role, assignmentData),
   });
   
   revalidatePath('/admin/users');
 }
 
-export async function updateUser(id: number, data: { name?: string; email?: string; role?: string; departmentId?: number | null; semesterId?: number | null; sectionId?: number | null }) {
+export async function updateUser(id: number, data: {
+  name?: string;
+  email?: string;
+  uniqueId?: string | null;
+  role?: string;
+  departmentId?: number | null;
+  semesterId?: number | null;
+  sectionId?: number | null;
+  studentId?: string | null;
+  roll?: string | null;
+  designation?: string | null;
+  courseIds?: number[];
+}) {
   await requireAdmin();
+  const targetSection = data.sectionId
+    ? await db.select().from(sections).where(eq(sections.id, data.sectionId)).get()
+    : null;
 
-  if (data.role === 'CR' && data.sectionId) {
-    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, data.sectionId)));
+  if (data.sectionId && !targetSection) {
+    throw new Error('Section not found');
+  }
+
+  const assignmentData = targetSection
+    ? {
+        ...data,
+        departmentId: targetSection.departmentId ?? data.departmentId,
+        semesterId: targetSection.semesterId,
+        sectionId: targetSection.id,
+      }
+    : data;
+
+  if (assignmentData.role === 'CR' && assignmentData.sectionId) {
+    const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, assignmentData.sectionId)));
     if (existingCRs.length >= 2 && !existingCRs.some(cr => cr.id === id)) {
       throw new Error("Maximum 2 CRs allowed per class section");
     }
   }
 
-  await db.update(users).set(data).where(eq(users.id, id));
+  const role = assignmentData.role || (await db.select({ role: users.role }).from(users).where(eq(users.id, id)).get())?.role || 'STUDENT';
+  await db.update(users).set({
+    ...assignmentData,
+    uniqueId: assignmentData.uniqueId?.trim() || assignmentData.studentId?.trim() || undefined,
+    ...normalizeRoleMetadata(role, assignmentData),
+  }).where(eq(users.id, id));
+
+  if (Array.isArray(data.courseIds)) {
+    await db.delete(enrollments).where(eq(enrollments.studentId, id));
+    if (data.courseIds.length > 0) {
+      await db.insert(enrollments).values(
+        [...new Set(data.courseIds)].map(courseId => ({ studentId: id, courseId }))
+      );
+    }
+  }
+
   revalidatePath('/admin/users');
+  revalidatePath('/dashboard');
+  revalidatePath('/teacher');
+  revalidatePath('/cr');
 }
 
 export async function deleteUser(id: number) {
   await requireAdmin();
   await db.delete(users).where(eq(users.id, id));
   revalidatePath('/admin/users');
+}
+
+function generateTemporaryPassword() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  return Array.from({ length: 12 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+}
+
+export async function resetUserPassword(id: number) {
+  await requireAdmin();
+
+  const user = await db.select({ id: users.id, name: users.name })
+    .from(users)
+    .where(eq(users.id, id))
+    .get();
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const temporaryPassword = generateTemporaryPassword();
+  const passwordHash = await bcrypt.hash(temporaryPassword, 10);
+
+  await db.update(users)
+    .set({ passwordHash })
+    .where(eq(users.id, id));
+
+  await sendNotification(
+    id,
+    '🔐 Password Reset',
+    'Your password was reset by the System Admin. Use the temporary password provided by the admin, then change it after signing in.'
+  );
+
+  revalidatePath('/admin/users');
+
+  return {
+    userName: user.name,
+    temporaryPassword,
+  };
 }
 
 // Infrastructure
@@ -90,14 +263,43 @@ export async function getDepartments() {
 
 export async function createDepartment(data: { name: string; code: string }) {
   await requireAdmin();
-  await db.insert(departments).values(data);
+  const [department] = await db.insert(departments).values(data).returning({ id: departments.id });
+  if (department?.id) {
+    await ensureStandardSemesters(department.id);
+  }
   revalidatePath('/admin/infrastructure');
+  revalidatePath('/admin/courses');
+  revalidatePath('/admin/sections');
+  revalidatePath('/admin/users');
 }
 
 export async function updateDepartment(id: number, data: { name: string; code: string }) {
   await requireAdmin();
   await db.update(departments).set(data).where(eq(departments.id, id));
   revalidatePath('/admin/infrastructure');
+}
+
+export async function initializeUniversityStructure() {
+  await requireAdmin();
+
+  for (const departmentData of DEFAULT_DEPARTMENTS) {
+    const existingDepartment = await db.select({ id: departments.id })
+      .from(departments)
+      .where(eq(departments.code, departmentData.code))
+      .get();
+
+    const departmentId = existingDepartment?.id
+      ?? (await db.insert(departments).values(departmentData).returning({ id: departments.id }))[0]?.id;
+
+    if (departmentId) {
+      await ensureStandardSemesters(departmentId);
+    }
+  }
+
+  revalidatePath('/admin/infrastructure');
+  revalidatePath('/admin/courses');
+  revalidatePath('/admin/sections');
+  revalidatePath('/admin/users');
 }
 
 export async function getClassrooms() {
@@ -236,15 +438,21 @@ export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | '
     }
   }
 
-  await db.update(users).set({ role }).where(eq(users.id, id));
+  await db.update(users).set({
+    role,
+    designation: role === 'HEAD' ? 'Department Head' : role === 'TEACHER' ? 'Lecturer' : undefined,
+  }).where(eq(users.id, id));
   
   await sendNotification(
     id,
     '🎭 Role Updated',
-    `Your system role has been updated to ${role}. Please log out and log in again to see the changes.`
+    `Your system role has been updated to ${role}. Refresh the app to see your current dashboard and tools.`
   );
   
   revalidatePath('/admin/users');
+  revalidatePath('/dashboard');
+  revalidatePath('/teacher');
+  revalidatePath('/cr');
 }
 
 
@@ -343,26 +551,31 @@ export async function removeAdminSection(sectionId: number) {
 export async function adminShiftStudent(studentId: number, newSectionId: number | null) {
   await requireAdmin();
   
+  let targetSection: typeof sections.$inferSelect | undefined;
   if (newSectionId) {
-    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
-    if (!section) throw new Error('Section not found');
+    targetSection = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
+    if (!targetSection) throw new Error('Section not found');
     
     const { count } = await db.select({ count: sql<number>`count(*)` })
       .from(users).where(eq(users.sectionId, newSectionId)).get() ?? { count: 0 };
       
-    if (count >= section.maxStudents) {
-      throw new Error(`Section "${section.name}" is at maximum capacity (${section.maxStudents}).`);
+    if (count >= targetSection.maxStudents) {
+      throw new Error(`Section "${targetSection.name}" is at maximum capacity (${targetSection.maxStudents}).`);
     }
   }
   
-  await db.update(users).set({ sectionId: newSectionId }).where(eq(users.id, studentId));
+  await db.update(users).set({
+    sectionId: newSectionId,
+    semesterId: targetSection?.semesterId ?? undefined,
+    departmentId: targetSection?.departmentId ?? undefined,
+  }).where(eq(users.id, studentId));
   
   if (newSectionId) {
-    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
-    await sendNotification(studentId, '🏫 Section Updated', `Your section has been updated to: ${section?.name}.`);
+    await sendNotification(studentId, '🏫 Section Updated', `Your section has been updated to: ${targetSection?.name}.`);
   }
   
   revalidatePath('/admin/sections');
+  revalidatePath('/admin/users');
 }
 
 export async function getStudentsByDepartment(departmentId: number) {

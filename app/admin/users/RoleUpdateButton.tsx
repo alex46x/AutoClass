@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { updateUserRole } from '@/app/actions/admin';
 import { ShieldAlert, GraduationCap } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
+import { useRouter } from 'next/navigation';
 
 export default function RoleUpdateButton({ id, currentRole }: { id: number, currentRole: string }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetRole, setTargetRole] = useState<'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | 'HEAD' | null>(null);
 
@@ -16,6 +18,7 @@ export default function RoleUpdateButton({ id, currentRole }: { id: number, curr
     setLoading(true);
     try {
       await updateUserRole(id, roleToSet);
+      router.refresh();
     } catch (err: any) {
       alert(err.message || 'Failed to update role');
     } finally {

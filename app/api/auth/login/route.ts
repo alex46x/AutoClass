@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, identifier, password } = await req.json();
+    const loginId = String(identifier || email || '').trim();
 
-    const user = db.select().from(users).where(eq(users.email, email)).get();
+    const user = db.select().from(users).where(or(
+      eq(users.email, loginId),
+      eq(users.uniqueId, loginId),
+      eq(users.studentId, loginId)
+    )).get();
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -33,6 +38,7 @@ export async function POST(req: Request) {
     const payload = {
       id: user.id,
       email: user.email,
+      uniqueId: user.uniqueId,
       role: user.role,
       name: user.name,
     };

@@ -29,6 +29,7 @@ sqlite.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
+    unique_id TEXT UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL,
     department_id INTEGER,
@@ -36,6 +37,7 @@ sqlite.exec(`
     section_id INTEGER,
     student_id TEXT,
     roll TEXT,
+    designation TEXT NOT NULL DEFAULT 'Lecturer',
     account_status TEXT NOT NULL DEFAULT 'ACTIVE',
     created_at INTEGER NOT NULL
   );
@@ -47,12 +49,15 @@ sqlite.exec(`
   CREATE TABLE IF NOT EXISTS semesters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    department_id INTEGER,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
   );
   CREATE TABLE IF NOT EXISTS sections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    semester_id INTEGER NOT NULL
+    semester_id INTEGER NOT NULL,
+    department_id INTEGER,
+    max_students INTEGER NOT NULL DEFAULT 40
   );
   CREATE TABLE IF NOT EXISTS courses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,6 +117,16 @@ sqlite.exec(`
     is_read INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS personal_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    parent_message_id INTEGER,
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
   CREATE TABLE IF NOT EXISTS exams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     course_id INTEGER NOT NULL,
@@ -165,6 +180,44 @@ sqlite.exec(`
     admin_note TEXT,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
   );
+  CREATE TABLE IF NOT EXISTS cr_class_posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cr_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    semester_id INTEGER NOT NULL,
+    section_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    scheduled_date TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS cr_polls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cr_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    semester_id INTEGER NOT NULL,
+    section_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'OPEN',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS cr_poll_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    poll_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS cr_poll_votes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    poll_id INTEGER NOT NULL,
+    option_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
 `);
 
 const addColumnIfMissing = (table: string, column: string, definition: string) => {
@@ -179,6 +232,7 @@ const addColumnIfMissing = (table: string, column: string, definition: string) =
 addColumnIfMissing('users', 'semester_id', 'semester_id INTEGER');
 addColumnIfMissing('users', 'section_id', 'section_id INTEGER');
 addColumnIfMissing('users', 'student_id', 'student_id TEXT');
+addColumnIfMissing('users', 'unique_id', 'unique_id TEXT');
 addColumnIfMissing('users', 'roll', 'roll TEXT');
 addColumnIfMissing('users', 'account_status', "account_status TEXT NOT NULL DEFAULT 'ACTIVE'");
 addColumnIfMissing('users', 'designation', "designation TEXT NOT NULL DEFAULT 'Lecturer'");
@@ -187,6 +241,13 @@ addColumnIfMissing('exams', 'start_time', 'start_time TEXT');
 addColumnIfMissing('sections', 'max_students', 'max_students INTEGER NOT NULL DEFAULT 40');
 addColumnIfMissing('sections', 'department_id', 'department_id INTEGER');
 addColumnIfMissing('semesters', 'department_id', 'department_id INTEGER');
+
+sqlite.exec(`
+  UPDATE users
+  SET unique_id = COALESCE(NULLIF(student_id, ''), lower(role) || '-' || id)
+  WHERE unique_id IS NULL OR unique_id = '';
+  CREATE UNIQUE INDEX IF NOT EXISTS users_unique_id_idx ON users(unique_id);
+`);
 
 const db = drizzle(sqlite, { schema });
 

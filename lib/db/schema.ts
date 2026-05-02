@@ -4,6 +4,7 @@ export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
+  uniqueId: text('unique_id').unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role').notNull(), // 'STUDENT', 'TEACHER', 'CR', 'ADMIN'
   departmentId: integer('department_id'),
@@ -102,6 +103,17 @@ export const notifications = sqliteTable('notifications', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+export const personalMessages = sqliteTable('personal_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  senderId: integer('sender_id').notNull(),
+  recipientId: integer('recipient_id').notNull(),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+  parentMessageId: integer('parent_message_id'),
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 export const exams = sqliteTable('exams', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   courseId: integer('course_id').notNull(),
@@ -157,5 +169,47 @@ export const studentRemovalRequests = sqliteTable('student_removal_requests', {
   reason: text('reason').notNull(),
   status: text('status').notNull().default('PENDING'),
   adminNote: text('admin_note'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const crClassPosts = sqliteTable('cr_class_posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  crId: integer('cr_id').notNull(),
+  courseId: integer('course_id').notNull(),
+  semesterId: integer('semester_id').notNull(),
+  sectionId: integer('section_id').notNull(),
+  type: text('type').notNull(), // 'NOTICE' | 'SCHEDULE'
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  scheduledDate: text('scheduled_date'),
+  startTime: text('start_time'),
+  endTime: text('end_time'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const crPolls = sqliteTable('cr_polls', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  crId: integer('cr_id').notNull(),
+  courseId: integer('course_id').notNull(),
+  semesterId: integer('semester_id').notNull(),
+  sectionId: integer('section_id').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: text('status').notNull().default('OPEN'), // 'OPEN' | 'CLOSED'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const crPollOptions = sqliteTable('cr_poll_options', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pollId: integer('poll_id').notNull(),
+  text: text('text').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const crPollVotes = sqliteTable('cr_poll_votes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pollId: integer('poll_id').notNull(),
+  optionId: integer('option_id').notNull(),
+  studentId: integer('student_id').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

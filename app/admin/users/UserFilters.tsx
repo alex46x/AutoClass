@@ -28,6 +28,13 @@ export default function UserFilters({
       params.delete(key);
     }
     
+    if (key === 'departmentId' && value !== departmentId) {
+      params.delete('semesterId');
+      params.delete('sectionId');
+      setSemesterId('');
+      setSectionId('');
+    }
+
     // Reset section if semester changes
     if (key === 'semesterId' && value !== semesterId) {
       params.delete('sectionId');
@@ -35,9 +42,18 @@ export default function UserFilters({
     }
 
     router.push(`?${params.toString()}`);
-  }, [searchParams, router, semesterId]);
+  }, [searchParams, router, departmentId, semesterId]);
 
-  const availableSections = sections.filter(s => s.semesterId === parseInt(semesterId));
+  const activeDepartmentId = departmentId ? parseInt(departmentId) : null;
+  const activeSemesterId = semesterId ? parseInt(semesterId) : null;
+  const availableSemesters = activeDepartmentId
+    ? semesters.filter(s => s.departmentId === activeDepartmentId)
+    : semesters;
+  const availableSections = sections.filter(s => {
+    if (activeDepartmentId && s.departmentId !== activeDepartmentId) return false;
+    if (activeSemesterId && s.semesterId !== activeSemesterId) return false;
+    return true;
+  });
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
@@ -51,6 +67,7 @@ export default function UserFilters({
           <option value="">All Roles</option>
           <option value="STUDENT">Student</option>
           <option value="TEACHER">Teacher</option>
+          <option value="HEAD">Department Head</option>
           <option value="CR">CR</option>
           <option value="ADMIN">Admin</option>
         </select>
@@ -76,7 +93,7 @@ export default function UserFilters({
           className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">All Semesters</option>
-          {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {availableSemesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
 
@@ -85,7 +102,7 @@ export default function UserFilters({
         <select 
           value={sectionId}
           onChange={(e) => { setSectionId(e.target.value); applyFilters('sectionId', e.target.value); }}
-          disabled={!semesterId}
+          disabled={!departmentId && !semesterId}
           className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
         >
           <option value="">All Sections</option>

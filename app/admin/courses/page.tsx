@@ -1,4 +1,4 @@
-import { getCourses, getDepartments, getSemesters, getSections } from '@/app/actions/admin';
+import { getCourses, getDepartments, getSemesters, getSections, initializeUniversityStructure } from '@/app/actions/admin';
 import { BookOpen, Hash } from 'lucide-react';
 import AddCourseForm from './AddCourseForm';
 import SemesterManager from './SemesterManager';
@@ -38,7 +38,17 @@ export default async function AdminCoursesPage({
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage courses, semesters and sections per department.</p>
         </div>
-        <AddCourseForm departments={departments} />
+        <div className="flex flex-col sm:flex-row gap-2">
+          <form action={initializeUniversityStructure}>
+            <button
+              type="submit"
+              className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-xl font-semibold text-sm shadow-sm transition-colors"
+            >
+              Initialize University Structure
+            </button>
+          </form>
+          <AddCourseForm departments={departments} />
+        </div>
       </header>
 
       <CourseFilters departments={departments} />

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
@@ -14,9 +14,9 @@ export async function POST(req: Request) {
     }
 
     // Check if email already exists
-    const existing = db.select().from(users).where(eq(users.email, email)).get();
+    const existing = db.select().from(users).where(or(eq(users.email, email), eq(users.uniqueId, studentId))).get();
     if (existing) {
-      return NextResponse.json({ error: 'Email is already registered' }, { status: 400 });
+      return NextResponse.json({ error: 'Email or student ID is already registered' }, { status: 400 });
     }
 
     // Hash password
@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     await db.insert(users).values({
       name,
       email,
+      uniqueId: studentId,
       passwordHash,
       role: 'STUDENT',
       studentId,

@@ -324,11 +324,13 @@ export async function shiftStudentSection(studentId: number, newSectionId: numbe
     
   if (!student) throw new Error('Student not found in your department');
 
+  let targetSection: typeof sections.$inferSelect | undefined;
   if (newSectionId) {
-    const section = await db.select().from(sections)
+    targetSection = await db.select().from(sections)
       .where(eq(sections.id, newSectionId))
       .get();
-    if (!section) throw new Error('Section not found');
+    if (!targetSection) throw new Error('Section not found');
+    if (targetSection.departmentId !== session.departmentId) throw new Error('Section not found in your department');
 
     // Check capacity
     const currentStudents = await db.select({ count: sql<number>`count(*)` })
@@ -336,21 +338,23 @@ export async function shiftStudentSection(studentId: number, newSectionId: numbe
       .where(eq(users.sectionId, newSectionId))
       .get();
       
-    if (currentStudents && currentStudents.count >= section.maxStudents) {
-      throw new Error(`Cannot shift student. Section "${section.name}" is already at maximum capacity (${section.maxStudents}).`);
+    if (currentStudents && currentStudents.count >= targetSection.maxStudents) {
+      throw new Error(`Cannot shift student. Section "${targetSection.name}" is already at maximum capacity (${targetSection.maxStudents}).`);
     }
   }
 
   await db.update(users)
-    .set({ sectionId: newSectionId })
+    .set({
+      sectionId: newSectionId,
+      semesterId: targetSection?.semesterId ?? undefined,
+    })
     .where(eq(users.id, studentId));
 
   if (newSectionId) {
-    const section = await db.select().from(sections).where(eq(sections.id, newSectionId)).get();
     await sendNotification(
       studentId,
       '🏫 Section Updated',
-      `Your Department Head has assigned you to a new section: ${section?.name}.`
+      `Your Department Head has assigned you to a new section: ${targetSection?.name}.`
     );
   }
 

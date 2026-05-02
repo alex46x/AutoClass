@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Mail, X } from 'lucide-react';
-import { sendTeacherMessage } from '@/app/actions/head';
+import { sendPersonalMessage } from '@/app/actions/messages';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SendMessageModal({ teacherId, teacherName }: { teacherId: number, teacherName: string }) {
@@ -17,7 +17,7 @@ export default function SendMessageModal({ teacherId, teacherName }: { teacherId
     
     setLoading(true);
     try {
-      await sendTeacherMessage(teacherId, title, message);
+      await sendPersonalMessage({ recipientId: teacherId, subject: title, body: message });
       setIsOpen(false);
       setTitle('');
       setMessage('');

@@ -4,18 +4,24 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { createUser } from '@/app/actions/admin';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function AddUserForm({ departments, semesters, sections }: { departments: any[], semesters: any[], sections: any[] }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({ 
     name: '', 
     email: '', 
+    uniqueId: '',
     role: 'TEACHER',
     departmentId: '',
     semesterId: '',
-    sectionId: ''
+    sectionId: '',
+    studentId: '',
+    roll: '',
+    designation: 'Lecturer'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,13 +32,18 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
       await createUser({
         name: formData.name,
         email: formData.email,
+        uniqueId: formData.uniqueId,
         role: formData.role,
         departmentId: formData.departmentId ? parseInt(formData.departmentId) : undefined,
         semesterId: formData.semesterId ? parseInt(formData.semesterId) : undefined,
         sectionId: formData.sectionId ? parseInt(formData.sectionId) : undefined,
+        studentId: formData.studentId,
+        roll: formData.roll,
+        designation: formData.designation,
       });
       setIsOpen(false);
-      setFormData({ name: '', email: '', role: 'TEACHER', departmentId: '', semesterId: '', sectionId: '' });
+      setFormData({ name: '', email: '', uniqueId: '', role: 'TEACHER', departmentId: '', semesterId: '', sectionId: '', studentId: '', roll: '', designation: 'Lecturer' });
+      router.refresh();
     } catch (err: any) {
       setError(err.message || 'Failed to create user');
     } finally {
@@ -40,7 +51,16 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
     }
   };
 
-  const availableSections = sections.filter(s => s.semesterId === parseInt(formData.semesterId));
+  const activeDepartmentId = formData.departmentId ? parseInt(formData.departmentId) : null;
+  const activeSemesterId = formData.semesterId ? parseInt(formData.semesterId) : null;
+  const availableSemesters = activeDepartmentId
+    ? semesters.filter(s => s.departmentId === activeDepartmentId)
+    : semesters;
+  const availableSections = sections.filter(s => {
+    if (activeDepartmentId && s.departmentId !== activeDepartmentId) return false;
+    if (activeSemesterId && s.semesterId !== activeSemesterId) return false;
+    return true;
+  });
 
   return (
     <>
@@ -97,12 +117,23 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unique Login ID</label>
+                  <input
+                    type="text"
+                    value={formData.uniqueId}
+                    onChange={(e) => setFormData({...formData, uniqueId: e.target.value})}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="teacher-24-001"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">System Role</label>
                   <select 
                     value={formData.role}
                     onChange={(e) => setFormData({...formData, role: e.target.value})}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                   >
+                    <option value="STUDENT">Student</option>
                     <option value="TEACHER">Teacher</option>
                     <option value="CR">Class Representative (CR)</option>
                     <option value="ADMIN">Administrator</option>
@@ -110,12 +141,12 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                   </select>
                 </div>
 
-                {(formData.role === 'CR' || formData.role === 'TEACHER' || formData.role === 'HEAD') && (
+                {formData.role !== 'ADMIN' && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                    <select 
+                      <select 
                       value={formData.departmentId}
-                      onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
+                      onChange={(e) => setFormData({...formData, departmentId: e.target.value, semesterId: '', sectionId: ''})}
                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="">Select Department</option>
@@ -124,17 +155,50 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                   </div>
                 )}
 
-                {formData.role === 'CR' && (
+                {(formData.role === 'TEACHER' || formData.role === 'HEAD') && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Teacher Designation</label>
+                    <input
+                      type="text"
+                      value={formData.designation}
+                      onChange={(e) => setFormData({...formData, designation: e.target.value})}
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Lecturer"
+                    />
+                  </div>
+                )}
+
+                {(formData.role === 'STUDENT' || formData.role === 'CR') && (
                   <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student ID</label>
+                        <input
+                          type="text"
+                          value={formData.studentId}
+                          onChange={(e) => setFormData({...formData, studentId: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Roll</label>
+                        <input
+                          type="text"
+                          value={formData.roll}
+                          onChange={(e) => setFormData({...formData, roll: e.target.value})}
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Semester</label>
                       <select 
                         value={formData.semesterId}
-                        onChange={(e) => setFormData({...formData, semesterId: e.target.value})}
+                        onChange={(e) => setFormData({...formData, semesterId: e.target.value, sectionId: ''})}
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="">Select Semester</option>
-                        {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {availableSemesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
 

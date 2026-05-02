@@ -1,22 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  // Auto-seed database when login page is opened for the first time
-  useEffect(() => {
-    fetch('/api/setup').catch(console.error);
-  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +22,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
 
       if (res.ok) {
@@ -95,18 +90,18 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
+              <label htmlFor="identifier" className="sr-only">
+                Email address or unique ID
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="identifier"
+                name="identifier"
+                type="text"
                 required
                 className="appearance-none relative block w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all focus:bg-white dark:focus:bg-slate-800 font-medium"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address or unique ID"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
               />
             </div>
             <div>
@@ -163,7 +158,7 @@ export default function LoginPage() {
                <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
              </div>
              <div className="relative flex justify-center text-sm">
-               <span className="px-3 bg-white dark:bg-slate-900 text-slate-400 text-xs font-bold uppercase tracking-wider">Test Credentials</span>
+               <span className="px-3 bg-white dark:bg-slate-900 text-slate-400 text-xs font-bold uppercase tracking-wider">Demo Setup</span>
              </div>
            </div>
            
@@ -176,11 +171,14 @@ export default function LoginPage() {
              </p>
            </div>
            <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex flex-col gap-2 items-center font-mono text-xs text-slate-500 dark:text-slate-400">
+             <div>Fresh database is empty until users are created.</div>
+             <div>Open /api/setup manually if you want demo data again.</div>
              <div>student@university.edu (student123)</div>
              <div>teacher@university.edu (teacher123)</div>
              <div>head@university.edu (head123)</div>
              <div>cr@university.edu (cr123)</div>
              <div>admin@university.edu (admin123)</div>
+             <div>You can also sign in with the unique ID shown in User Management.</div>
            </div>
         </div>
       </motion.div>

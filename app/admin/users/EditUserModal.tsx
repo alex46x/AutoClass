@@ -2,29 +2,52 @@
 
 import { useState } from 'react';
 import { updateUser } from '@/app/actions/admin';
+import { getUserCourseIds } from '@/app/actions/admin';
 import { Edit2, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function EditUserModal({ 
   user,
   departments,
   semesters,
   sections 
+  , courses
 }: { 
   user: any;
   departments: any[];
   semesters: any[];
   sections: any[];
+  courses: any[];
 }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
+  const [uniqueId, setUniqueId] = useState(user.uniqueId || '');
   const [role, setRole] = useState(user.role);
   const [departmentId, setDepartmentId] = useState(user.departmentId?.toString() || '');
   const [semesterId, setSemesterId] = useState(user.semesterId?.toString() || '');
   const [sectionId, setSectionId] = useState(user.sectionId?.toString() || '');
+  const [studentId, setStudentId] = useState(user.studentId || '');
+  const [roll, setRoll] = useState(user.roll || '');
+  const [designation, setDesignation] = useState(user.designation || 'Lecturer');
+  const [courseIds, setCourseIds] = useState<number[]>([]);
+  const activeDepartmentId = departmentId ? parseInt(departmentId) : null;
+  const activeSemesterId = semesterId ? parseInt(semesterId) : null;
+  const availableSemesters = activeDepartmentId
+    ? semesters.filter(s => s.departmentId === activeDepartmentId)
+    : semesters;
+  const availableSections = sections.filter(s => {
+    if (activeDepartmentId && s.departmentId !== activeDepartmentId) return false;
+    if (activeSemesterId && s.semesterId !== activeSemesterId) return false;
+    return true;
+  });
+  const availableCourses = activeDepartmentId
+    ? courses.filter(course => course.departmentId === activeDepartmentId)
+    : courses;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,12 +56,18 @@ export default function EditUserModal({
       await updateUser(user.id, {
         name,
         email,
+        uniqueId,
         role,
         departmentId: departmentId ? parseInt(departmentId) : null,
         semesterId: semesterId ? parseInt(semesterId) : null,
         sectionId: sectionId ? parseInt(sectionId) : null,
+        studentId: studentId || null,
+        roll: roll || null,
+        designation: designation || null,
+        courseIds: role === 'STUDENT' || role === 'CR' ? courseIds : undefined,
       });
       setIsOpen(false);
+      router.refresh();
     } catch (err: any) {
       alert(err.message || 'Update failed');
     } finally {
@@ -49,7 +78,12 @@ export default function EditUserModal({
   return (
     <>
       <button 
-        onClick={() => setIsOpen(true)}
+        onClick={async () => {
+          setIsOpen(true);
+          if (user.role === 'STUDENT' || user.role === 'CR') {
+            setCourseIds(await getUserCourseIds(user.id));
+          }
+        }}
         className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
         title="Edit User"
       >
@@ -84,6 +118,11 @@ export default function EditUserModal({
                 </div>
 
                 <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Unique Login ID</label>
+                  <input type="text" required value={uniqueId} onChange={e => setUniqueId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+
+                <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Role</label>
                   <select value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
                     <option value="STUDENT">Student</option>
@@ -97,30 +136,67 @@ export default function EditUserModal({
                 {role !== 'ADMIN' && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                    <select value={departmentId} onChange={e => setDepartmentId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                    <select value={departmentId} onChange={e => { setDepartmentId(e.target.value); setSemesterId(''); setSectionId(''); }} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
                       <option value="">No Department</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                 )}
 
+                {(role === 'TEACHER' || role === 'HEAD') && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Teacher Designation</label>
+                    <input type="text" value={designation} onChange={e => setDesignation(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                  </div>
+                )}
+
                 {(role === 'STUDENT' || role === 'CR') && (
+                  <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Student ID</label>
+                      <input type="text" value={studentId} onChange={e => setStudentId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Roll</label>
+                      <input type="text" value={roll} onChange={e => setRoll(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                    </div>
+                    <div>
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Semester</label>
-                      <select value={semesterId} onChange={e => setSemesterId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                      <select value={semesterId} onChange={e => { setSemesterId(e.target.value); setSectionId(''); }} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
                         <option value="">None</option>
-                        {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {availableSemesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Section</label>
                       <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
                         <option value="">None</option>
-                        {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {availableSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Course Enrollment</label>
+                    <div className="max-h-36 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800">
+                      {availableCourses.map(course => (
+                        <label key={course.id} className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={courseIds.includes(course.id)}
+                            onChange={e => {
+                              setCourseIds(prev => e.target.checked
+                                ? [...prev, course.id]
+                                : prev.filter(id => id !== course.id));
+                            }}
+                          />
+                          <span className="font-mono text-xs">{course.code}</span>
+                          <span>{course.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  </>
                 )}
 
                 <div className="pt-4 flex justify-end gap-3">

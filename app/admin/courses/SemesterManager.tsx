@@ -62,13 +62,13 @@ export default function SemesterManager({ semesters, sections, departmentId }: {
     <div className="space-y-6 mb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Semesters & Sections</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage academic terms and their class sections.</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">8-Semester Structure & Sections</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Each department follows 4 academic years with 2 semesters per year. Add or remove sections under each semester.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setIsOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow-sm transition-colors text-sm">
-            <Plus className="w-4 h-4" /> Add Semester
-          </button>
+          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold text-sm border border-indigo-100 dark:border-indigo-900/40">
+            {semesters.length}/8 semesters
+          </span>
         </div>
       </div>
 
@@ -116,6 +116,11 @@ export default function SemesterManager({ semesters, sections, departmentId }: {
             </div>
           );
         })}
+        {semesters.length === 0 && (
+          <div className="md:col-span-2 lg:col-span-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center text-slate-500 dark:text-slate-400">
+            Initialize the university structure to create the standard 8 semesters for this department.
+          </div>
+        )}
       </div>
 
       {/* Modals */}

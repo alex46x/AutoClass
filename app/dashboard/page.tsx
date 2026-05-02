@@ -2,15 +2,17 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { Calendar, Clock, CheckCircle2, BellRing, BellOff, GraduationCap, BookOpen, AlertCircle } from 'lucide-react';
+import { Calendar, CheckCircle2, BellRing, BellOff, GraduationCap, BookOpen, BarChart3, Megaphone } from 'lucide-react';
 import { revalidatePath } from 'next/cache';
 import { getStudentDashboardStats } from '@/app/actions/dashboard';
+import { getClassPolls, getStudentClassPosts } from '@/app/actions/cr';
+import Link from 'next/link';
 
 export default async function StudentDashboard() {
   const session = await getSession();
   if (!session) return null;
 
-  const [stats, todaysClasses, latestNotice] = await Promise.all([
+  const [stats, todaysClasses, latestNotice, classPolls, classUpdates, unreadClassActivity] = await Promise.all([
     getStudentDashboardStats(),
     db.all(sql`
       SELECT s.start_time, s.end_time, c.name as course_name, c.code as course_code, 
@@ -27,11 +29,21 @@ export default async function StudentDashboard() {
       .where(and(eq(notifications.userId, session.id), eq(notifications.isRead, false)))
       .orderBy(desc(notifications.createdAt))
       .limit(1)
-      .then(rows => rows[0])
+      .then(rows => rows[0]),
+    getClassPolls(),
+    getStudentClassPosts(),
+    db.select({ count: sql<number>`COUNT(*)` }).from(notifications)
+      .where(and(
+        eq(notifications.userId, session.id),
+        eq(notifications.isRead, false),
+        sql`(${notifications.title} LIKE '%Poll%' OR ${notifications.title} LIKE '%Notice%' OR ${notifications.title} LIKE '%Schedule%')`
+      ))
+      .then(rows => Number(rows[0]?.count || 0))
   ]);
 
   const isDanger = stats.attendance < 75;
-  const isWarning = stats.attendance >= 75 && stats.attendance < 80;
+  const openPollCount = classPolls.filter(poll => poll.status === 'OPEN').length;
+  const recentUpdateCount = classUpdates.length;
 
   async function markAsRead(formData: FormData) {
     'use server';
@@ -82,6 +94,48 @@ export default async function StudentDashboard() {
           <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{stats.courseCount}</p>
         </div>
       </div>
+
+      {(openPollCount > 0 || recentUpdateCount > 0 || unreadClassActivity > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link href="/dashboard/polls" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Class Polls</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{openPollCount} open poll{openPollCount !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              {openPollCount > 0 && (
+                <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                  New
+                </span>
+              )}
+            </div>
+          </Link>
+
+          <Link href="/dashboard/class-updates" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <Megaphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">CR Notices & Schedules</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{recentUpdateCount} class update{recentUpdateCount !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              {unreadClassActivity > 0 && (
+                <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                  {unreadClassActivity} new
+                </span>
+              )}
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Alerts Section */}

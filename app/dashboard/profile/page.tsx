@@ -42,6 +42,11 @@ export default async function ProfilePage() {
                   ID: {profile.studentId}
                 </span>
               )}
+              {profile.uniqueId && (
+                <span className="bg-white/15 px-3 py-1 rounded-full text-xs font-bold font-mono">
+                  Login ID: {profile.uniqueId}
+                </span>
+              )}
               {profile.semesterId && (
                 <span className="bg-white/15 px-3 py-1 rounded-full text-xs font-bold">
                   Semester {profile.semesterId}

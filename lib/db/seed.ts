@@ -16,6 +16,7 @@ export async function seed() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
+      unique_id TEXT UNIQUE,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL,
       department_id INTEGER,
@@ -136,10 +137,10 @@ export async function seed() {
       ]).run();
       
       const res = db.insert(schema.users).values([
-        { name: 'System Admin', email: 'admin@university.edu', passwordHash, role: 'ADMIN', createdAt: now },
-        { name: 'Dr. Alan Turing', email: 'teacher@university.edu', passwordHash: pwdHashTeacher, role: 'TEACHER', departmentId: 1, createdAt: now },
-        { name: 'John Doe', email: 'student@university.edu', passwordHash: pwdHashStudent, role: 'STUDENT', departmentId: 1, createdAt: now },
-        { name: 'Jane Smith (CR)', email: 'cr@university.edu', passwordHash: pwdHashCR, role: 'CR', departmentId: 1, createdAt: now },
+        { name: 'System Admin', email: 'admin@university.edu', uniqueId: 'admin-1', passwordHash, role: 'ADMIN', createdAt: now },
+        { name: 'Dr. Alan Turing', email: 'teacher@university.edu', uniqueId: 'teacher-1', passwordHash: pwdHashTeacher, role: 'TEACHER', departmentId: 1, createdAt: now },
+        { name: 'John Doe', email: 'student@university.edu', uniqueId: 'student-1', passwordHash: pwdHashStudent, role: 'STUDENT', departmentId: 1, createdAt: now },
+        { name: 'Jane Smith (CR)', email: 'cr@university.edu', uniqueId: 'cr-1', passwordHash: pwdHashCR, role: 'CR', departmentId: 1, createdAt: now },
       ]).returning({ id: schema.users.id }).run();
   
       const studentId = 3;
@@ -184,6 +185,7 @@ export async function seed() {
     db.insert(schema.users).values({
       name: 'Prof. Grace Hopper',
       email: 'head@university.edu',
+      uniqueId: 'head-1',
       passwordHash: pwdHashHead,
       role: 'HEAD',
       departmentId: 1,

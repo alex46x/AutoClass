@@ -127,7 +127,7 @@ export default async function AdminSectionsPage({
                 <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Sections Found</h3>
                 <p className="text-slate-500 dark:text-slate-400 mt-2">
-                  No sections for this department and semester. Click "Add Section" above.
+                  No sections for this department and semester. Click &quot;Add Section&quot; above.
                 </p>
               </div>
             ) : (

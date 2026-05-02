@@ -1,9 +1,9 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, LogOut, Search, Users, MapPin, CheckSquare, User, BarChart3, Menu, X, Megaphone } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, LogOut, Search, Users, MapPin, CheckSquare, User, BarChart3, Menu, X, Megaphone, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import NotificationBell from './NotificationBell';
@@ -23,18 +23,22 @@ const navItems: Record<string, NavItem[]> = {
     { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
     { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
     { icon: CalendarIcon, label: 'Leave Requests', href: '/dashboard/leave' },
+    { icon: Bell, label: 'Class Updates', href: '/dashboard/class-updates' },
+    { icon: BarChart3, label: 'Class Polls', href: '/dashboard/polls' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
     { icon: User, label: 'Profile', href: '/dashboard/profile' },
     { icon: CalendarIcon, label: 'Calendar', href: '/dashboard/calendar' },
   ],
   TEACHER: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
+    { icon: MessageSquare, label: 'Messages', href: '/teacher/messages' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes' },
     { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
     { icon: CalendarIcon, label: 'Calendar', href: '/teacher/calendar' },
   ],
   HEAD: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
+    { icon: MessageSquare, label: 'Messages', href: '/teacher/messages' },
     { icon: Users, label: 'Faculty & Students', href: '/teacher/faculty', divider: 'Department Head' },
     { icon: BookOpen, label: 'Sections', href: '/teacher/sections' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes', divider: 'Teacher' },
@@ -47,6 +51,8 @@ const navItems: Record<string, NavItem[]> = {
     { icon: CalendarIcon, label: 'Routine', href: '/dashboard/routine' },
     { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
     { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
+    { icon: Bell, label: 'Class Updates', href: '/dashboard/class-updates' },
+    { icon: BarChart3, label: 'Class Polls', href: '/dashboard/polls' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
     { icon: User, label: 'Profile', href: '/dashboard/profile' },
     // ── CR Management Features ────────────────────
@@ -56,10 +62,12 @@ const navItems: Record<string, NavItem[]> = {
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
     { icon: MapPin, label: 'Room Occupancy', href: '/cr/rooms/occupancy' },
     { icon: CalendarIcon, label: 'Makeup Class', href: '/cr/makeup-class' },
-    { icon: Bell, label: 'Send Notice', href: '/cr/notices' },
+    { icon: Bell, label: 'Notices & Schedules', href: '/cr/notices' },
+    { icon: BarChart3, label: 'Polls', href: '/cr/polls' },
   ],
   ADMIN: [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
+    { icon: MessageSquare, label: 'Messages', href: '/admin/messages' },
     { icon: Users, label: 'User Management', href: '/admin/users' },
     { icon: MapPin, label: 'Infrastructure', href: '/admin/infrastructure' },
     { icon: BookOpen, label: 'Academic Setup', href: '/admin/courses' },
@@ -82,11 +90,6 @@ export default function SidebarLayout({ children, role, userName }: { children: 
     router.push('/login');
     router.refresh();
   };
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
@@ -114,7 +117,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
                   {item.divider}
                 </p>
               )}
-              <Link href={item.href}>
+              <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
                 <span className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer relative group",
                   isActive 
@@ -168,7 +171,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
       {/* Desktop Sidebar */}
       <aside className="w-64 flex-shrink-0 hidden md:block">
         <div className="fixed top-0 left-0 bottom-0 w-64 h-full">
-          <SidebarContent />
+          {SidebarContent()}
         </div>
       </aside>
 
@@ -190,7 +193,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed top-0 left-0 bottom-0 w-[280px] z-[101] md:hidden shadow-2xl flex flex-col"
             >
-              <SidebarContent />
+              {SidebarContent()}
             </motion.aside>
           </>
         )}
