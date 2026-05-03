@@ -5,6 +5,13 @@ import { eq } from 'drizzle-orm';
 
 export async function seed() {
   console.log('Seeding database...');
+  const seedPasswords = {
+    admin: process.env.SEED_ADMIN_PASSWORD || 'change-admin-password',
+    teacher: process.env.SEED_TEACHER_PASSWORD || 'change-teacher-password',
+    student: process.env.SEED_STUDENT_PASSWORD || 'change-student-password',
+    cr: process.env.SEED_CR_PASSWORD || 'change-cr-password',
+    head: process.env.SEED_HEAD_PASSWORD || 'change-head-password',
+  };
   
   // Create tables using drizzle syntax or raw SQL
   // For better-sqlite3 with standard usage, we can write raw DDL or just let drizzle-kit handle.
@@ -106,13 +113,11 @@ export async function seed() {
   ).get();
 
   if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash('admin123', 10);
-    const pwdHashStudent = await bcrypt.hash('student123', 10);
-    const pwdHashTeacher = await bcrypt.hash('teacher123', 10);
-    const pwdHashCR = await bcrypt.hash('cr123', 10);
-    
-    console.log("Original student hash:", pwdHashStudent);
-    console.log("Compare immediately:", await bcrypt.compare('student123', pwdHashStudent));
+    const passwordHash = await bcrypt.hash(seedPasswords.admin, 10);
+    const pwdHashStudent = await bcrypt.hash(seedPasswords.student, 10);
+    const pwdHashTeacher = await bcrypt.hash(seedPasswords.teacher, 10);
+    const pwdHashCR = await bcrypt.hash(seedPasswords.cr, 10);
+
 
     const now = new Date();
 
@@ -164,11 +169,11 @@ export async function seed() {
       ]).run();
   
       db.insert(schema.notifications).values([
-        { userId: studentId, title: 'Welcome to CampusFlow', message: 'Your semester begins today.', createdAt: now },
+        { userId: studentId, title: 'Welcome to UniHub', message: 'Your semester begins today.', createdAt: now },
       ]).run();
   
       sqlite.exec("COMMIT");
-      console.log("Seeding complete. Use student@university.edu : student123");
+      console.log("Seeding complete.");
     } catch(e) {
       sqlite.exec("ROLLBACK");
       console.error(e);
@@ -181,7 +186,7 @@ export async function seed() {
   ).get();
 
   if (!existingHead) {
-    const pwdHashHead = await bcrypt.hash('head123', 10);
+    const pwdHashHead = await bcrypt.hash(seedPasswords.head, 10);
     db.insert(schema.users).values({
       name: 'Prof. Grace Hopper',
       email: 'head@university.edu',

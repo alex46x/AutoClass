@@ -7,6 +7,9 @@ coverage/
 !.env.example
 
 # Database
+*.db
+*.db-shm
+*.db-wal
 local.db
 local.db-shm
 local.db-wal

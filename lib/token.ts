@@ -1,4 +1,8 @@
-const secretKey = process.env.JWT_SECRET || 'super_secret_jwt_key_for_development';
+const secretKey = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'development_only_jwt_secret_change_me');
+
+if (!secretKey) {
+  throw new Error('JWT_SECRET must be set in production.');
+}
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 

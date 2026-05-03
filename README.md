@@ -56,13 +56,17 @@ The project implements a Role-Based Access Control system with four distinct use
    ```bash
    npm run dev
    ```
-3. Open [http://localhost:3000](http://localhost:3000) in your browser. The database is automatically seeded with test data upon the first visit to the login page.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-**Test Credentials:**
-- student@university.edu (student123)
-- teacher@university.edu (teacher123)
-- cr@university.edu (cr123)
-- admin@university.edu (admin123)
+**Seed Credentials:**
+Set the `SEED_*_PASSWORD` environment variables before using `/api/setup`. The seeded demo emails are:
+- student@university.edu
+- teacher@university.edu
+- head@university.edu
+- cr@university.edu
+- admin@university.edu
+
+To seed manually, set `SETUP_TOKEN` and open `/api/setup?token=YOUR_SETUP_TOKEN`.
 
 ## Social and Economic Value
 - **Academic Value**: The "Safe/Warning" indicators directly contribute to better student performance by encouraging regular attendance.

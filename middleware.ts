@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/token';
 
-const publicRoutes = ['/login', '/register', '/api/auth/login', '/api/setup'];
+const publicRoutes = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/setup'];
 
 export async function middleware(request: NextRequest) {
   // Try to read token from cookies
