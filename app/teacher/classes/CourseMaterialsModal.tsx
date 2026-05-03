@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getCourseMaterials, addCourseMaterial, deleteCourseMaterial } from '@/app/actions/materials';
 import { getCourseNotices, addCourseNotice, deleteCourseNotice } from '@/app/actions/notices';
 import { BookOpen, Plus, Trash2, Link as LinkIcon, FileText, Loader2, X, Megaphone, Bell } from 'lucide-react';
@@ -27,11 +27,7 @@ export default function CourseMaterialsModal({
   const [materialForm, setMaterialForm] = useState({ title: '', content: '', type: 'TEXT' as 'TEXT' | 'LINK' });
   const [noticeForm, setNoticeForm] = useState({ title: '', message: '' });
 
-  useEffect(() => {
-    loadData();
-  }, [courseId, activeTab]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'MATERIALS') {
@@ -44,7 +40,11 @@ export default function CourseMaterialsModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, courseId]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   const handleMaterialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

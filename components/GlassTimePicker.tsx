@@ -65,7 +65,7 @@ export default function GlassTimePicker({
   const controlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue);
   const selectedValue = controlled ? value : internalValue;
-  const selectedParts = parseTime(selectedValue);
+  const selectedParts = useMemo(() => parseTime(selectedValue), [selectedValue]);
   const [draftParts, setDraftParts] = useState<TimeParts>(selectedParts ?? fallbackParts());
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -80,7 +80,7 @@ export default function GlassTimePicker({
 
   useEffect(() => {
     if (selectedParts) setDraftParts(selectedParts);
-  }, [selectedValue]);
+  }, [selectedParts]);
 
   useEffect(() => {
     if (!open) return;

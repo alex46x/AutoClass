@@ -33,7 +33,7 @@ export default async function RoutinePage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm">
             <CalendarIcon className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-slate-900 dark:text-white">No classes scheduled</h3>
-            <p className="text-slate-500 mt-1">You don't have any classes assigned yet.</p>
+            <p className="text-slate-500 mt-1">You don&apos;t have any classes assigned yet.</p>
           </div>
         ) : (
           <div className="space-y-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getCourseMaterials } from '@/app/actions/materials';
 import { getCourseNotices } from '@/app/actions/notices';
 import { BookOpen, Link as LinkIcon, FileText, Loader2, X, ExternalLink, Bell, Megaphone } from 'lucide-react';
@@ -19,11 +19,7 @@ export default function ViewMaterialsModal({
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [courseId, activeTab]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'MATERIALS') {
@@ -36,7 +32,11 @@ export default function ViewMaterialsModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, courseId]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">

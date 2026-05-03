@@ -61,7 +61,7 @@ export default function GlassDatePicker({
   const controlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue);
   const selectedValue = controlled ? value : internalValue;
-  const selectedDate = parseIsoDate(selectedValue);
+  const selectedDate = useMemo(() => parseIsoDate(selectedValue), [selectedValue]);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
@@ -72,7 +72,7 @@ export default function GlassDatePicker({
 
   useEffect(() => {
     if (selectedDate) setViewDate(selectedDate);
-  }, [selectedValue]);
+  }, [selectedDate]);
 
   useEffect(() => {
     setMounted(true);

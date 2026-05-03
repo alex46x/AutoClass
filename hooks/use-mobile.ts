@@ -13,7 +13,6 @@ export function useIsMobile() {
     mql.addEventListener("change", onChange)
     // Initial check
     const initialCheck = window.innerWidth < MOBILE_BREAKPOINT
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(initialCheck)
 
     return () => mql.removeEventListener("change", onChange)
