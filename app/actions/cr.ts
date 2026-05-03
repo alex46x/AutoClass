@@ -106,7 +106,7 @@ export async function approveClassmate(id: number) {
     throw new Error('You can only approve students in your exact semester and section');
   }
   await db.update(users).set({ accountStatus: 'ACTIVE' }).where(eq(users.id, id));
-  await sendNotification(id, '✅ Account Approved', `Welcome! Your account was approved by your CR (${crUser.name}). You can now log in to CampusFlow.`);
+  await sendNotification(id, '✅ Account Approved', `Welcome! Your account was approved by your CR (${crUser.name}). You can now log in to UniHub.`);
   revalidatePath('/cr/approvals');
 }
 

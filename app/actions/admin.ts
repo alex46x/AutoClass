@@ -110,6 +110,10 @@ export async function createUser(data: {
   designation?: string;
 }) {
   await requireAdmin();
+  if (data.role === 'CR') {
+    throw new Error('Department Heads manage CR assignments. Create the user as a student first.');
+  }
+
   const uniqueId = data.uniqueId?.trim() || data.studentId?.trim() || data.email.split('@')[0];
   const targetSection = data.sectionId
     ? await db.select().from(sections).where(eq(sections.id, data.sectionId)).get()
@@ -165,6 +169,23 @@ export async function updateUser(id: number, data: {
   courseIds?: number[];
 }) {
   await requireAdmin();
+  const currentUser = await db.select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, id))
+    .get();
+
+  if (!currentUser) {
+    throw new Error('User not found');
+  }
+
+  if (
+    data.role &&
+    data.role !== currentUser.role &&
+    (data.role === 'CR' || currentUser.role === 'CR')
+  ) {
+    throw new Error('Department Heads manage CR promotions and demotions.');
+  }
+
   const targetSection = data.sectionId
     ? await db.select().from(sections).where(eq(sections.id, data.sectionId)).get()
     : null;
@@ -189,7 +210,7 @@ export async function updateUser(id: number, data: {
     }
   }
 
-  const role = assignmentData.role || (await db.select({ role: users.role }).from(users).where(eq(users.id, id)).get())?.role || 'STUDENT';
+  const role = assignmentData.role || currentUser.role || 'STUDENT';
   await db.update(users).set({
     ...assignmentData,
     uniqueId: assignmentData.uniqueId?.trim() || assignmentData.studentId?.trim() || undefined,
@@ -410,7 +431,7 @@ export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED'
       await sendNotification(
         id,
         '✅ Account Approved',
-        `Welcome to CampusFlow, ${user.name}! Your account has been approved. You can now log in and access the university portal.`
+        `Welcome to UniHub, ${user.name}! Your account has been approved. You can now log in and access the university portal.`
       );
     } else {
       await sendNotification(
@@ -425,17 +446,16 @@ export async function updateUserStatus(id: number, status: 'ACTIVE' | 'REJECTED'
   revalidatePath('/admin/users');
 }
 
-export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | 'HEAD') {
+export async function updateUserRole(id: number, role: 'STUDENT' | 'TEACHER' | 'ADMIN' | 'HEAD') {
   await requireAdmin();
 
-  if (role === 'CR') {
-    const user = await db.select().from(users).where(eq(users.id, id)).get();
-    if (user && user.sectionId) {
-      const existingCRs = await db.select().from(users).where(and(eq(users.role, 'CR'), eq(users.sectionId, user.sectionId)));
-      if (existingCRs.length >= 2) {
-        throw new Error("Maximum 2 CRs allowed per class section");
-      }
-    }
+  const user = await db.select({ role: users.role }).from(users).where(eq(users.id, id)).get();
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (user.role === 'CR') {
+    throw new Error('Department Heads manage CR promotions and demotions.');
   }
 
   await db.update(users).set({

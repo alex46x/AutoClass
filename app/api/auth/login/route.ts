@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { or, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
@@ -10,11 +10,16 @@ export async function POST(req: Request) {
   try {
     const { email, identifier, password } = await req.json();
     const loginId = String(identifier || email || '').trim();
+    const normalizedLoginId = loginId.toLowerCase();
+
+    if (!loginId || !password) {
+      return NextResponse.json({ error: 'Email or ID and password are required' }, { status: 400 });
+    }
 
     const user = db.select().from(users).where(or(
-      eq(users.email, loginId),
-      eq(users.uniqueId, loginId),
-      eq(users.studentId, loginId)
+      sql`lower(${users.email}) = ${normalizedLoginId}`,
+      sql`lower(${users.uniqueId}) = ${normalizedLoginId}`,
+      sql`lower(${users.studentId}) = ${normalizedLoginId}`
     )).get();
 
     if (!user) {

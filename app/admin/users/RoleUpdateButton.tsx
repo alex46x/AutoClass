@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 export default function RoleUpdateButton({ id, currentRole }: { id: number, currentRole: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [targetRole, setTargetRole] = useState<'STUDENT' | 'TEACHER' | 'CR' | 'ADMIN' | 'HEAD' | null>(null);
+  const [targetRole, setTargetRole] = useState<'STUDENT' | 'TEACHER' | 'ADMIN' | 'HEAD' | null>(null);
 
   const handleRoleChange = async () => {
     if (!targetRole) return;
@@ -30,26 +30,6 @@ export default function RoleUpdateButton({ id, currentRole }: { id: number, curr
 
   return (
     <div className="flex items-center gap-1 justify-end">
-      {currentRole === 'STUDENT' && (
-        <button
-          onClick={() => setTargetRole('CR')}
-          disabled={loading}
-          className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 dark:border-amber-900/50 transition-colors"
-          title="Promote to CR"
-        >
-          <ShieldAlert className="w-4 h-4" />
-        </button>
-      )}
-      {currentRole === 'CR' && (
-        <button
-          onClick={() => setTargetRole('STUDENT')}
-          disabled={loading}
-          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 dark:border-indigo-900/50 transition-colors"
-          title="Demote to Student"
-        >
-          <GraduationCap className="w-4 h-4" />
-        </button>
-      )}
       {currentRole === 'TEACHER' && (
         <button
           onClick={() => setTargetRole('HEAD')}

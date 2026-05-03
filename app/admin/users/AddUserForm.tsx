@@ -136,7 +136,6 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                   >
                     <option value="STUDENT">Student</option>
                     <option value="TEACHER">Teacher</option>
-                    <option value="CR">Class Representative (CR)</option>
                     <option value="ADMIN">Administrator</option>
                     <option value="HEAD">Department Head</option>
                   </GlassSelect>

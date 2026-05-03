@@ -167,6 +167,76 @@ export async function getDepartmentStudents() {
   .orderBy(users.name);
 }
 
+export async function updateDepartmentStudentCrRole(studentId: number, makeCr: boolean) {
+  const session = await requireHead();
+
+  const student = await db.select({
+    id: users.id,
+    name: users.name,
+    role: users.role,
+    departmentId: users.departmentId,
+    sectionId: users.sectionId,
+    accountStatus: users.accountStatus,
+  })
+  .from(users)
+  .where(and(
+    eq(users.id, studentId),
+    eq(users.departmentId, session.departmentId!)
+  ))
+  .get();
+
+  if (!student) {
+    throw new Error('Student not found in your department');
+  }
+
+  if (student.role !== 'STUDENT' && student.role !== 'CR') {
+    throw new Error('Only students can be assigned as CRs');
+  }
+
+  if (student.accountStatus !== 'ACTIVE') {
+    throw new Error('Only active students can be assigned as CRs');
+  }
+
+  if (makeCr) {
+    if (!student.sectionId) {
+      throw new Error('Assign the student to a section before promoting them to CR');
+    }
+
+    const existingCRs = await db.select({ id: users.id })
+      .from(users)
+      .where(and(
+        eq(users.role, 'CR'),
+        eq(users.sectionId, student.sectionId),
+        ne(users.id, studentId)
+      ));
+
+    if (existingCRs.length >= 2) {
+      throw new Error('Maximum 2 CRs allowed per class section');
+    }
+  }
+
+  const role = makeCr ? 'CR' : 'STUDENT';
+  await db.update(users)
+    .set({ role })
+    .where(and(
+      eq(users.id, studentId),
+      eq(users.departmentId, session.departmentId!)
+    ));
+
+  await sendNotification(
+    studentId,
+    'Role Updated',
+    makeCr
+      ? 'Your Department Head has promoted you to Class Representative.'
+      : 'Your Department Head has updated your role to Student.'
+  );
+
+  revalidatePath('/teacher/faculty');
+  revalidatePath('/dashboard');
+  revalidatePath('/cr');
+  revalidatePath('/admin/users');
+}
+
 
 export async function removeStudentFromDepartment(studentId: number, reason: string) {
   const session = await requireHead();

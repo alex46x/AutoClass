@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>CampusFlow AI</h1>
-  <p>An Automated Class Scheduling and Attendance Tracking System</p>
+  <h1>UniHub</h1>
+  <p>A university management, class scheduling, and attendance tracking system</p>
 </div>
 
 ## Introduction
-In modern academic institutions, managing class routines, attendance, and resource allocation is a complex logistical challenge. CampusFlow AI is a software solution designed to streamline the interaction between students, teachers, and class representatives (CRs). The system replaces manual attendance registers and static notice boards with a dynamic, role-based application that offers real-time insights into academic schedules and classroom availability.
+In modern academic institutions, managing class routines, attendance, and resource allocation is a complex logistical challenge. UniHub is a software solution designed to streamline the interaction between students, teachers, and class representatives (CRs). The system replaces manual attendance registers and static notice boards with a dynamic, role-based application that offers real-time insights into academic schedules and classroom availability.
 
 ## Background
 Currently, the university operates using traditional manual methods:
@@ -12,7 +12,7 @@ Currently, the university operates using traditional manual methods:
 - **Static Routines**: Printed routines do not reflect last-minute cancellations or room changes.
 - **Manual Room Hunting**: Class Representatives often have to physically search the campus for empty rooms to schedule makeup classes.
 
-While generic "School Management Systems" exist, they often lack specific features required for university logistics, such as "makeup class management" or "Class Representative privileges." CampusFlow AI bridges that gap.
+While generic "School Management Systems" exist, they often lack specific features required for university logistics, such as "makeup class management" or "Class Representative privileges." UniHub bridges that gap.
 
 ## Problem Statements
 - **Attendance Anxiety**: Students often lose track of their attendance percentage, leading to unexpected "Collegiate" or "Non-Collegiate" status.

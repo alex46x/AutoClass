@@ -130,7 +130,7 @@ export default function RegisterPage() {
             Student Registration
           </h2>
           <p className="mt-2 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
-            Join the CampusFlow AI network using your university email
+            Join the UniHub network using your university email
           </p>
         </div>
 

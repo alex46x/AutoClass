@@ -37,7 +37,7 @@ export default function LoginPage() {
       } else {
         const data = await res.json().catch(() => ({}));
         if (res.status === 401) {
-          setError('Invalid email or password. Please try again.');
+          setError('Invalid email, ID, or password. Please try again.');
         } else {
           setError(data.error || 'Failed to login. Please try again later.');
         }
@@ -67,10 +67,10 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center">
           <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-md shadow-indigo-600/20">
-            <span className="text-white font-bold text-2xl">C</span>
+            <span className="text-white font-bold text-2xl">U</span>
           </div>
           <h2 className="text-center text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            CampusFlow <span className="text-indigo-600 dark:text-indigo-400">AI</span>
+            UniHub
           </h2>
           <p className="mt-2 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
             Sign in to your intelligent university portal
@@ -91,7 +91,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="identifier" className="sr-only">
-                Email address or unique ID
+                Email address, student ID, or teacher ID
               </label>
               <input
                 id="identifier"
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 type="text"
                 required
                 className="appearance-none relative block w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all focus:bg-white dark:focus:bg-slate-800 font-medium"
-                placeholder="Email address or unique ID"
+                placeholder="Email, student ID, or teacher ID"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
               />
@@ -170,15 +170,8 @@ export default function LoginPage() {
                </Link>
              </p>
            </div>
-           <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex flex-col gap-2 items-center font-mono text-xs text-slate-500 dark:text-slate-400">
-             <div>Fresh database is empty until users are created.</div>
-             <div>Open /api/setup manually if you want demo data again.</div>
-             <div>student@university.edu (student123)</div>
-             <div>teacher@university.edu (teacher123)</div>
-             <div>head@university.edu (head123)</div>
-             <div>cr@university.edu (cr123)</div>
-             <div>admin@university.edu (admin123)</div>
-             <div>You can also sign in with the unique ID shown in User Management.</div>
+           <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+             Use your university email, student ID, or teacher ID with your password.
            </div>
         </div>
       </motion.div>

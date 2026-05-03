@@ -125,9 +125,11 @@ export default function EditUserModal({
 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Role</label>
-                  <GlassSelect value={role} onChange={e => setRole(e.target.value)} className="w-full">
+                  <GlassSelect value={role} onChange={e => setRole(e.target.value)} disabled={user.role === 'CR'} className="w-full">
                     <option value="STUDENT">Student</option>
-                    <option value="CR">Class Representative (CR)</option>
+                    {user.role === 'CR' && (
+                      <option value="CR">Class Representative (Dept. Head managed)</option>
+                    )}
                     <option value="TEACHER">Teacher</option>
                     <option value="HEAD">Department Head</option>
                     <option value="ADMIN">System Admin</option>

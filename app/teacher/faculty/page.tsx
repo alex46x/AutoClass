@@ -4,6 +4,7 @@ import DesignationSelect from './DesignationSelect';
 import SendMessageModal from './SendMessageModal';
 import BroadcastModal from './BroadcastModal';
 import RemoveStudentModal from './RemoveStudentModal';
+import CRRoleButton from './CRRoleButton';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
@@ -105,7 +106,7 @@ export default async function FacultyManagementPage() {
                   <th className="px-6 py-4 font-semibold">Email</th>
                   <th className="px-6 py-4 font-semibold">Student ID</th>
                   <th className="px-6 py-4 font-semibold">Role</th>
-                  <th className="px-6 py-4 font-semibold text-right">Action</th>
+                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -133,6 +134,9 @@ export default async function FacultyManagementPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        <div className="mb-2 flex justify-end">
+                          <CRRoleButton studentId={student.id} studentName={student.name} currentRole={student.role} />
+                        </div>
                         {hasPendingRemoval ? (
                           <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800">
                             ⏳ Removal Pending

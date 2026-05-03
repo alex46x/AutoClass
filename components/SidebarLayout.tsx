@@ -101,10 +101,10 @@ export default function SidebarLayout({ children, role, userName }: { children: 
       <div className="p-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">C</span>
+            <span className="text-white font-bold">U</span>
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-            CampusFlow <span className="text-indigo-600 dark:text-indigo-400">AI</span>
+            UniHub
           </span>
         </div>
         <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">
