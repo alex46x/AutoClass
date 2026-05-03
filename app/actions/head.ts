@@ -146,8 +146,33 @@ export async function broadcastDepartmentNotice(
 
 // ── Student Management ─────────────────────────────────────────────────────────
 
-export async function getDepartmentStudents() {
+export async function getDepartmentStudents(filters?: { semesterId?: number; sectionId?: number }) {
   const session = await requireHead();
+  const roleFilter = or(eq(users.role, 'STUDENT'), eq(users.role, 'CR'));
+
+  const whereClause = filters?.semesterId && filters?.sectionId
+    ? and(
+        eq(users.departmentId, session.departmentId!),
+        roleFilter,
+        eq(users.semesterId, filters.semesterId),
+        eq(users.sectionId, filters.sectionId)
+      )
+    : filters?.semesterId
+      ? and(
+          eq(users.departmentId, session.departmentId!),
+          roleFilter,
+          eq(users.semesterId, filters.semesterId)
+        )
+      : filters?.sectionId
+        ? and(
+            eq(users.departmentId, session.departmentId!),
+            roleFilter,
+            eq(users.sectionId, filters.sectionId)
+          )
+        : and(
+            eq(users.departmentId, session.departmentId!),
+            roleFilter
+          );
 
   return await db.select({
     id: users.id,
@@ -157,14 +182,16 @@ export async function getDepartmentStudents() {
     roll: users.roll,
     accountStatus: users.accountStatus,
     role: users.role,
+    semesterId: users.semesterId,
     sectionId: users.sectionId,
+    semesterName: semesters.name,
+    sectionName: sections.name,
   })
   .from(users)
-  .where(and(
-    eq(users.departmentId, session.departmentId!),
-    or(eq(users.role, 'STUDENT'), eq(users.role, 'CR'))
-  ))
-  .orderBy(users.name);
+  .leftJoin(semesters, eq(users.semesterId, semesters.id))
+  .leftJoin(sections, eq(users.sectionId, sections.id))
+  .where(whereClause)
+  .orderBy(semesters.createdAt, sections.name, users.name);
 }
 
 export async function updateDepartmentStudentCrRole(studentId: number, makeCr: boolean) {
