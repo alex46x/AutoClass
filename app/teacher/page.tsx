@@ -2,7 +2,7 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { schedules, courses, classrooms } from '@/lib/db/schema';
 import { eq, sql, and } from 'drizzle-orm';
-import { Users, BookOpen, Clock, FileSpreadsheet, Calendar, TrendingUp } from 'lucide-react';
+import { Users, BookOpen, Clock, FileSpreadsheet, Calendar, TrendingUp, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 import { getTeacherDashboardStats } from '@/app/actions/dashboard';
 
@@ -40,6 +40,12 @@ export default async function TeacherDashboard() {
             <Link href="/teacher/grading" className="bg-indigo-800 text-indigo-100 px-5 py-2.5 rounded-2xl text-sm font-bold border border-indigo-700 hover:bg-indigo-700 transition-colors">
               Grading Portal
             </Link>
+            {session.role === 'HEAD' && (
+              <Link href="/teacher/events" className="bg-indigo-800 text-indigo-100 px-5 py-2.5 rounded-2xl text-sm font-bold border border-indigo-700 hover:bg-indigo-700 transition-colors inline-flex items-center gap-2">
+                <CalendarClock className="w-4 h-4" />
+                Events
+              </Link>
+            )}
           </div>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-[100px] opacity-20 -translate-y-12 translate-x-12" />

@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm';
 import { getPendingMakeupClasses, getPendingUsers } from '@/app/actions/admin';
 import {
   Building2, Users, GraduationCap,
-  MapPin, Settings, AlertTriangle, UserCheck
+  MapPin, Settings, AlertTriangle, UserCheck, CalendarClock
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -69,6 +69,10 @@ export default async function AdminDashboard() {
           <Link href="/admin/reports" className="p-4 bg-indigo-800/50 border border-indigo-700/50 rounded-2xl hover:bg-indigo-800 transition-colors flex flex-col items-center justify-center text-center gap-2 group">
             <Settings className="w-6 h-6 text-indigo-300 group-hover:text-white transition-colors" />
             <span className="font-semibold text-sm text-indigo-100 group-hover:text-white">Reports</span>
+          </Link>
+          <Link href="/admin/events" className="p-4 bg-indigo-800/50 border border-indigo-700/50 rounded-2xl hover:bg-indigo-800 transition-colors flex flex-col items-center justify-center text-center gap-2 group">
+            <CalendarClock className="w-6 h-6 text-indigo-300 group-hover:text-white transition-colors" />
+            <span className="font-semibold text-sm text-indigo-100 group-hover:text-white">University Events</span>
           </Link>
         </div>
         <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 rounded-full blur-3xl opacity-20 -translate-y-12 translate-x-12"></div>

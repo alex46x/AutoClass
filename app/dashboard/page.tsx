@@ -2,17 +2,18 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { Calendar, CheckCircle2, BellRing, BellOff, GraduationCap, BookOpen, BarChart3, Megaphone } from 'lucide-react';
+import { Calendar, CheckCircle2, BellRing, BellOff, GraduationCap, BookOpen, BarChart3, Megaphone, CalendarClock } from 'lucide-react';
 import { revalidatePath } from 'next/cache';
 import { getStudentDashboardStats } from '@/app/actions/dashboard';
 import { getClassPolls, getStudentClassPosts } from '@/app/actions/cr';
+import { getVisibleEvents } from '@/app/actions/events';
 import Link from 'next/link';
 
 export default async function StudentDashboard() {
   const session = await getSession();
   if (!session) return null;
 
-  const [stats, todaysClasses, latestNotice, classPolls, classUpdates, unreadClassActivity] = await Promise.all([
+  const [stats, todaysClasses, latestNotice, classPolls, classUpdates, visibleEvents, unreadClassActivity] = await Promise.all([
     getStudentDashboardStats(),
     db.all(sql`
       SELECT s.start_time, s.end_time, c.name as course_name, c.code as course_code, 
@@ -32,6 +33,7 @@ export default async function StudentDashboard() {
       .then(rows => rows[0]),
     getClassPolls(),
     getStudentClassPosts(),
+    getVisibleEvents(),
     db.select({ count: sql<number>`COUNT(*)` }).from(notifications)
       .where(and(
         eq(notifications.userId, session.id),
@@ -44,6 +46,7 @@ export default async function StudentDashboard() {
   const isDanger = stats.attendance < 75;
   const openPollCount = classPolls.filter(poll => poll.status === 'OPEN').length;
   const recentUpdateCount = classUpdates.length;
+  const upcomingEventCount = visibleEvents.filter(event => event.status === 'SCHEDULED').length;
 
   async function markAsRead(formData: FormData) {
     'use server';
@@ -95,8 +98,8 @@ export default async function StudentDashboard() {
         </div>
       </div>
 
-      {(openPollCount > 0 || recentUpdateCount > 0 || unreadClassActivity > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {(openPollCount > 0 || recentUpdateCount > 0 || upcomingEventCount > 0 || unreadClassActivity > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link href="/dashboard/polls" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -111,6 +114,25 @@ export default async function StudentDashboard() {
               {openPollCount > 0 && (
                 <span className="rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">
                   New
+                </span>
+              )}
+            </div>
+          </Link>
+
+          <Link href="/dashboard/events" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <CalendarClock className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Events</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{upcomingEventCount} upcoming event{upcomingEventCount !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              {upcomingEventCount > 0 && (
+                <span className="rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                  RSVP
                 </span>
               )}
             </div>

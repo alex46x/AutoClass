@@ -213,3 +213,40 @@ export const crPollVotes = sqliteTable('cr_poll_votes', {
   studentId: integer('student_id').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+export const campusEvents = sqliteTable('campus_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  hostId: integer('host_id').notNull(),
+  scope: text('scope').notNull(), // 'CLASS' | 'DEPARTMENT' | 'UNIVERSITY'
+  departmentId: integer('department_id'),
+  semesterId: integer('semester_id'),
+  sectionId: integer('section_id'),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  location: text('location').notNull(),
+  coverImage: text('cover_image'),
+  category: text('category').notNull().default('General'),
+  startDate: text('start_date').notNull(),
+  startTime: text('start_time').notNull(),
+  endDate: text('end_date'),
+  endTime: text('end_time'),
+  status: text('status').notNull().default('SCHEDULED'), // 'SCHEDULED' | 'CANCELLED'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const eventRsvps = sqliteTable('event_rsvps', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').notNull(),
+  userId: integer('user_id').notNull(),
+  status: text('status').notNull(), // 'GOING' | 'INTERESTED' | 'NOT_GOING'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const eventDiscussions = sqliteTable('event_discussions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').notNull(),
+  userId: integer('user_id').notNull(),
+  message: text('message').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

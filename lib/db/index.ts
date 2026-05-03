@@ -218,6 +218,41 @@ sqlite.exec(`
     student_id INTEGER NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
   );
+  CREATE TABLE IF NOT EXISTS campus_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    host_id INTEGER NOT NULL,
+    scope TEXT NOT NULL,
+    department_id INTEGER,
+    semester_id INTEGER,
+    section_id INTEGER,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    location TEXT NOT NULL,
+    cover_image TEXT,
+    category TEXT NOT NULL DEFAULT 'General',
+    start_date TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_date TEXT,
+    end_time TEXT,
+    status TEXT NOT NULL DEFAULT 'SCHEDULED',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS event_rsvps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS event_discussions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS event_rsvps_event_user_idx ON event_rsvps(event_id, user_id);
 `);
 
 const addColumnIfMissing = (table: string, column: string, definition: string) => {

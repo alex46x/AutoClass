@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, LogOut, Search, Users, MapPin, CheckSquare, User, BarChart3, Menu, X, Megaphone, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar as CalendarIcon, Bell, LogOut, Search, Users, MapPin, CheckSquare, User, BarChart3, Menu, X, Megaphone, MessageSquare, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { clsx } from 'clsx';
@@ -23,6 +23,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
     { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
     { icon: CalendarIcon, label: 'Leave Requests', href: '/dashboard/leave' },
+    { icon: CalendarClock, label: 'Events', href: '/dashboard/events' },
     { icon: Bell, label: 'Class Updates', href: '/dashboard/class-updates' },
     { icon: BarChart3, label: 'Class Polls', href: '/dashboard/polls' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
@@ -40,6 +41,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: LayoutDashboard, label: 'Dashboard', href: '/teacher' },
     { icon: MessageSquare, label: 'Messages', href: '/teacher/messages' },
     { icon: Users, label: 'Faculty & Students', href: '/teacher/faculty', divider: 'Department Head' },
+    { icon: CalendarClock, label: 'Department Events', href: '/teacher/events' },
     { icon: BookOpen, label: 'Sections', href: '/teacher/sections' },
     { icon: CalendarIcon, label: 'Classes & Attendance', href: '/teacher/classes', divider: 'Teacher' },
     { icon: BookOpen, label: 'Grading', href: '/teacher/grading' },
@@ -51,6 +53,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: CalendarIcon, label: 'Routine', href: '/dashboard/routine' },
     { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
     { icon: BookOpen, label: 'Transcript', href: '/dashboard/transcript' },
+    { icon: CalendarClock, label: 'Events', href: '/dashboard/events' },
     { icon: Bell, label: 'Class Updates', href: '/dashboard/class-updates' },
     { icon: BarChart3, label: 'Class Polls', href: '/dashboard/polls' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
@@ -62,6 +65,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },
     { icon: MapPin, label: 'Room Occupancy', href: '/cr/rooms/occupancy' },
     { icon: CalendarIcon, label: 'Makeup Class', href: '/cr/makeup-class' },
+    { icon: CalendarClock, label: 'Class Events', href: '/cr/events' },
     { icon: Bell, label: 'Notices & Schedules', href: '/cr/notices' },
     { icon: BarChart3, label: 'Polls', href: '/cr/polls' },
   ],
@@ -72,6 +76,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: MapPin, label: 'Infrastructure', href: '/admin/infrastructure' },
     { icon: BookOpen, label: 'Academic Setup', href: '/admin/courses' },
     { icon: BookOpen, label: 'Sections', href: '/admin/sections' },
+    { icon: CalendarClock, label: 'University Events', href: '/admin/events' },
     { icon: CheckSquare, label: 'Approvals', href: '/admin/approvals' },
     { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
     { icon: Megaphone, label: 'Broadcast', href: '/admin/broadcast' },

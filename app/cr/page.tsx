@@ -1,5 +1,5 @@
 import { getCRDashboardStats } from '@/app/actions/cr';
-import { Search, CalendarDays, Users, Send, ShieldAlert, BarChart3 } from 'lucide-react';
+import { Search, CalendarDays, Users, Send, ShieldAlert, BarChart3, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function CRDashboard() {
@@ -91,6 +91,16 @@ export default async function CRDashboard() {
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Polls</h3>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Collect class opinions</p>
+          </div>
+        </Link>
+
+        <Link href="/cr/events" className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all">
+          <div className="w-14 h-14 shrink-0 bg-emerald-100 dark:bg-emerald-900/50 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <CalendarClock className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Class Events</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Host events for Section {stats.section}</p>
           </div>
         </Link>
 
