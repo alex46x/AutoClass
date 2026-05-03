@@ -7,6 +7,9 @@ import path from 'path';
 // Using local.db inside the workspace or a specific SQLite env var.
 const getDbPath = () => {
   if (process.env.SQLITE_DB_URL) return process.env.SQLITE_DB_URL;
+  if (process.env.VERCEL) {
+    return path.join('/tmp', 'unihub-local.db');
+  }
   // Next.js build runs from / instead of /app/applet in some cases
   const potentialWorkspacePath = path.join('/', 'app', 'applet');
   if (fs.existsSync(potentialWorkspacePath)) {
