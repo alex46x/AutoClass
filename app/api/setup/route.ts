@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { seed } from '@/lib/db/seed';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
@@ -10,9 +12,17 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
+    const { seed } = await import('@/lib/db/seed');
     await seed();
     return NextResponse.json({ message: 'Database seeded successfully' });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Setup failed:', error);
+    return NextResponse.json(
+      {
+        error: 'Database setup failed',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }
