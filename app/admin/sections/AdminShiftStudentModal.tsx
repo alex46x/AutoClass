@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowRightLeft, X } from 'lucide-react';
 import { adminShiftStudent } from '@/app/actions/admin';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlassSelect from '@/components/GlassSelect';
 
 type Section = { id: number; name: string; semesterName?: string };
 
@@ -59,15 +60,15 @@ export default function AdminShiftStudentModal({ studentId, studentName, current
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Assign to Section</label>
-                  <select value={newSectionId} onChange={(e) => setNewSectionId(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                  <GlassSelect value={newSectionId} onChange={(e) => setNewSectionId(e.target.value)}
+                    className="w-full">
                     <option value="unassigned">Unassigned (No Section)</option>
                     {sections.map(sec => (
                       <option key={sec.id} value={sec.id}>
                         {sec.name} {sec.semesterName ? `(${sec.semesterName})` : ''}
                       </option>
                     ))}
-                  </select>
+                  </GlassSelect>
                 </div>
                 <div className="pt-2 flex gap-3">
                   <button type="button" onClick={() => setIsOpen(false)}

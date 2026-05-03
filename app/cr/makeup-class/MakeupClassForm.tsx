@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { requestMakeupClass } from '@/app/actions/cr';
 import { useRouter } from 'next/navigation';
 import { Calendar as CalendarIcon, Clock, MapPin, Users, CheckCircle2 } from 'lucide-react';
+import GlassDatePicker from '@/components/GlassDatePicker';
+import GlassSelect from '@/components/GlassSelect';
+import GlassTimePicker from '@/components/GlassTimePicker';
 
 export default function MakeupClassForm({
   courses,
@@ -62,42 +65,42 @@ export default function MakeupClassForm({
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Course
         </label>
-        <select 
+        <GlassSelect
           name="courseId" 
           required
-          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full"
         >
           <option value="">Select a course...</option>
           {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
-        </select>
+        </GlassSelect>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Teacher
         </label>
-        <select 
+        <GlassSelect
           name="teacherId" 
           required
-          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full"
         >
           <option value="">Select teacher...</option>
           {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
+        </GlassSelect>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Classroom
         </label>
-        <select 
+        <GlassSelect
           name="classroomId" 
           required
-          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full"
         >
           <option value="">Select an empty room...</option>
           {classrooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
+        </GlassSelect>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -105,11 +108,10 @@ export default function MakeupClassForm({
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Date
           </label>
-          <input 
-            type="date" 
+          <GlassDatePicker
             name="date"
             required
-            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Select class date"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -117,22 +119,20 @@ export default function MakeupClassForm({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Start Time
             </label>
-            <input 
-              type="time" 
+            <GlassTimePicker
               name="startTime"
               required
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Start time"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               End Time
             </label>
-            <input 
-              type="time" 
+            <GlassTimePicker
               name="endTime"
               required
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="End time"
             />
           </div>
         </div>

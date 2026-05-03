@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { submitLeaveRequest } from '@/app/actions/leave';
 import { Send, CalendarRange } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlassDatePicker from '@/components/GlassDatePicker';
 
 export default function SubmitLeaveForm() {
   const [formData, setFormData] = useState({ startDate: '', endDate: '', reason: '' });
@@ -69,22 +70,21 @@ export default function SubmitLeaveForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Date</label>
-            <input
-              type="date"
+            <GlassDatePicker
               required
               value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"
+              onChange={(startDate) => setFormData({ ...formData, startDate })}
+              placeholder="Start date"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Date</label>
-            <input
-              type="date"
+            <GlassDatePicker
               required
               value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"
+              min={formData.startDate}
+              onChange={(endDate) => setFormData({ ...formData, endDate })}
+              placeholder="End date"
             />
           </div>
         </div>

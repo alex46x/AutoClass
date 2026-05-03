@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { addPollOption, createPoll, removePollOption, setPollStatus } from '@/app/actions/cr';
 import { Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import GlassSelect from '@/components/GlassSelect';
 
 type Course = { id: number; name: string; code: string };
 type Poll = {
@@ -52,12 +53,12 @@ export default function PollManager({ courses, polls }: { courses: Course[]; pol
       <form onSubmit={handleCreate} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Topic Scope</label>
-          <select name="courseId" required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <GlassSelect name="courseId" required className="w-full">
             <option value="0">General class topic</option>
             {courses.map(course => (
               <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
             ))}
-          </select>
+          </GlassSelect>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
             Use a general poll for decisions like class timing, events, or group choices.
           </p>

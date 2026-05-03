@@ -30,6 +30,13 @@ export type EventComment = {
   authorRole: string;
 };
 
+export type EventRsvpAttendee = {
+  id: number;
+  name: string;
+  role: string;
+  status: RsvpStatus;
+};
+
 export type EventView = {
   id: number;
   hostId: number;
@@ -53,6 +60,7 @@ export type EventView = {
   interestedCount: number;
   notGoingCount: number;
   myRsvp: RsvpStatus | null;
+  rsvps: EventRsvpAttendee[];
   comments: EventComment[];
 };
 
@@ -312,17 +320,36 @@ async function getEventsForWhere(whereClause: ReturnType<typeof sql>, viewerId: 
     WHERE ${whereClause}
     GROUP BY e.id
     ORDER BY e.start_date ASC, e.start_time ASC, e.created_at DESC
-  `) as Array<Omit<EventView, 'comments'>>;
+  `) as Array<Omit<EventView, 'comments' | 'rsvps'>>;
 
   const events = rows.map(row => ({
     ...row,
     goingCount: Number(row.goingCount),
     interestedCount: Number(row.interestedCount),
     notGoingCount: Number(row.notGoingCount),
+    rsvps: [] as EventRsvpAttendee[],
     comments: [] as EventComment[],
   }));
 
   for (const event of events) {
+    const rsvps = await db.select({
+      id: users.id,
+      name: users.name,
+      role: users.role,
+      status: eventRsvps.status,
+    })
+      .from(eventRsvps)
+      .innerJoin(users, eq(eventRsvps.userId, users.id))
+      .where(eq(eventRsvps.eventId, event.id))
+      .orderBy(users.name);
+
+    event.rsvps = rsvps.map(rsvp => ({
+      id: rsvp.id,
+      name: rsvp.name,
+      role: rsvp.role,
+      status: rsvp.status as RsvpStatus,
+    }));
+
     const comments = await db.select({
       id: eventDiscussions.id,
       message: eventDiscussions.message,

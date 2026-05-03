@@ -5,6 +5,7 @@ import { Plus, X } from 'lucide-react';
 import { createUser } from '@/app/actions/admin';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function AddUserForm({ departments, semesters, sections }: { departments: any[], semesters: any[], sections: any[] }) {
   const router = useRouter();
@@ -128,30 +129,30 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">System Role</label>
-                  <select 
+                  <GlassSelect
                     value={formData.role}
                     onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full"
                   >
                     <option value="STUDENT">Student</option>
                     <option value="TEACHER">Teacher</option>
                     <option value="CR">Class Representative (CR)</option>
                     <option value="ADMIN">Administrator</option>
                     <option value="HEAD">Department Head</option>
-                  </select>
+                  </GlassSelect>
                 </div>
 
                 {formData.role !== 'ADMIN' && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                      <select 
+                      <GlassSelect
                       value={formData.departmentId}
                       onChange={(e) => setFormData({...formData, departmentId: e.target.value, semesterId: '', sectionId: ''})}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full"
                     >
                       <option value="">Select Department</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
+                    </GlassSelect>
                   </div>
                 )}
 
@@ -192,27 +193,27 @@ export default function AddUserForm({ departments, semesters, sections }: { depa
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Semester</label>
-                      <select 
+                      <GlassSelect
                         value={formData.semesterId}
                         onChange={(e) => setFormData({...formData, semesterId: e.target.value, sectionId: ''})}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full"
                       >
                         <option value="">Select Semester</option>
                         {availableSemesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                      </GlassSelect>
                     </div>
 
                     {formData.semesterId && (
                       <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
-                        <select 
+                        <GlassSelect
                           value={formData.sectionId}
                           onChange={(e) => setFormData({...formData, sectionId: e.target.value})}
-                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full"
                         >
                           <option value="">Select Section</option>
                           {availableSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
+                        </GlassSelect>
                       </div>
                     )}
                   </>

@@ -112,7 +112,7 @@ export default function SidebarLayout({ children, role, userName }: { children: 
         </button>
       </div>
       
-      <nav className="mt-4 px-4 space-y-1 flex-1 overflow-y-auto">
+      <nav className="scrollbar-none mt-4 px-4 space-y-1 flex-1 overflow-y-auto">
         {items.map((item, index) => {
           const isActive = pathname === item.href;
           return (

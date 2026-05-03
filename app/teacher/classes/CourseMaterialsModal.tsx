@@ -6,6 +6,7 @@ import { getCourseNotices, addCourseNotice, deleteCourseNotice } from '@/app/act
 import { BookOpen, Plus, Trash2, Link as LinkIcon, FileText, Loader2, X, Megaphone, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmModal from '@/components/ConfirmModal';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function CourseMaterialsModal({ 
   courseId, 
@@ -141,14 +142,14 @@ export default function CourseMaterialsModal({
                     className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
-                <select
+                <GlassSelect
                   value={materialForm.type}
                   onChange={e => setMaterialForm({ ...materialForm, type: e.target.value as 'TEXT' | 'LINK' })}
-                  className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  className="w-full"
                 >
                   <option value="TEXT">Note / Text</option>
                   <option value="LINK">External Link</option>
-                </select>
+                </GlassSelect>
                 <input
                   type="text"
                   placeholder={materialForm.type === 'LINK' ? 'https://...' : 'Write note here...'}

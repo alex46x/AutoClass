@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckCheck, Inbox, Loader2, MailPlus, MessageSquare, Reply, Send, X } from 'lucide-react';
 import { markMessageThreadRead, replyToPersonalMessage, sendPersonalMessage } from '@/app/actions/messages';
+import GlassSelect from '@/components/GlassSelect';
 
 type Recipient = {
   id: number;
@@ -282,11 +283,11 @@ export default function StaffMessagesView({
             <form onSubmit={handleSend} className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Recipient</label>
-                <select
+                <GlassSelect
                   required
                   value={recipientId}
                   onChange={event => setRecipientId(event.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full"
                 >
                   <option value="">Select teacher, head, or admin</option>
                   {recipients.map(recipient => (
@@ -294,7 +295,7 @@ export default function StaffMessagesView({
                       {recipient.name} - {roleLabel(recipient.role)}{recipient.departmentName ? `, ${recipient.departmentName}` : ''}
                     </option>
                   ))}
-                </select>
+                </GlassSelect>
               </div>
 
               <div>

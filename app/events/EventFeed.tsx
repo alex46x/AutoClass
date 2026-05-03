@@ -21,6 +21,10 @@ function audienceLabel(event: EventView) {
   return [event.semesterName, event.sectionName].filter(Boolean).join(' - ') || 'Class';
 }
 
+function rsvpList(event: EventView, status: RsvpStatus) {
+  return event.rsvps.filter(rsvp => rsvp.status === status);
+}
+
 const rsvpButtons: Array<{ status: RsvpStatus; label: string; icon: typeof UserRoundCheck }> = [
   { status: 'GOING', label: 'Going', icon: UserRoundCheck },
   { status: 'INTERESTED', label: 'Interested', icon: Star },
@@ -30,6 +34,8 @@ const rsvpButtons: Array<{ status: RsvpStatus; label: string; icon: typeof UserR
 export default function EventFeed({ events }: { events: EventView[] }) {
   const router = useRouter();
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
+  const [commentErrors, setCommentErrors] = useState<Record<number, string>>({});
+  const [postingCommentId, setPostingCommentId] = useState<number | null>(null);
   const [loadingRsvp, setLoadingRsvp] = useState<string | null>(null);
 
   if (events.length === 0) {
@@ -100,6 +106,44 @@ export default function EventFeed({ events }: { events: EventView[] }) {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                { status: 'GOING' as const, title: 'Going', tone: 'emerald' },
+                { status: 'INTERESTED' as const, title: 'Interested', tone: 'amber' },
+                { status: 'NOT_GOING' as const, title: 'Not Going', tone: 'slate' },
+              ].map(group => {
+                const people = rsvpList(item, group.status);
+                const toneClass = group.tone === 'emerald'
+                  ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-emerald-200'
+                  : group.tone === 'amber'
+                    ? 'border-amber-200 bg-amber-50/70 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-200';
+
+                return (
+                  <div key={group.status} className={`rounded-2xl border px-4 py-3 ${toneClass}`}>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-xs font-black uppercase tracking-widest">{group.title}</p>
+                      <span className="rounded-full bg-white/60 px-2 py-0.5 text-[10px] font-black dark:bg-white/10">
+                        {people.length}
+                      </span>
+                    </div>
+                    {people.length === 0 ? (
+                      <p className="text-xs font-semibold opacity-70">No one yet</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {people.map(person => (
+                          <div key={`${group.status}-${person.id}`} className="flex items-center justify-between gap-2 rounded-xl bg-white/55 px-2.5 py-2 text-xs font-bold dark:bg-white/10">
+                            <span className="truncate">{person.name}</span>
+                            <span className="shrink-0 text-[9px] font-black uppercase tracking-wider opacity-60">{person.role}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {rsvpButtons.map(button => {
                 const Icon = button.icon;
@@ -133,23 +177,52 @@ export default function EventFeed({ events }: { events: EventView[] }) {
                 className="flex gap-2 mb-4"
                 onSubmit={async event => {
                   event.preventDefault();
-                  const message = commentDrafts[item.id] || '';
-                  await addEventComment(item.id, message);
-                  setCommentDrafts(prev => ({ ...prev, [item.id]: '' }));
-                  router.refresh();
+                  const message = (commentDrafts[item.id] || '').trim();
+                  if (!message) {
+                    setCommentErrors(prev => ({ ...prev, [item.id]: 'Write something before posting.' }));
+                    return;
+                  }
+
+                  setPostingCommentId(item.id);
+                  setCommentErrors(prev => ({ ...prev, [item.id]: '' }));
+                  try {
+                    await addEventComment(item.id, message);
+                    setCommentDrafts(prev => ({ ...prev, [item.id]: '' }));
+                    router.refresh();
+                  } catch (error) {
+                    setCommentErrors(prev => ({
+                      ...prev,
+                      [item.id]: error instanceof Error ? error.message : 'Could not post comment.',
+                    }));
+                  } finally {
+                    setPostingCommentId(null);
+                  }
                 }}
               >
                 <input
                   value={commentDrafts[item.id] || ''}
-                  onChange={event => setCommentDrafts(prev => ({ ...prev, [item.id]: event.target.value }))}
+                  onChange={event => {
+                    setCommentDrafts(prev => ({ ...prev, [item.id]: event.target.value }));
+                    if (commentErrors[item.id]) {
+                      setCommentErrors(prev => ({ ...prev, [item.id]: '' }));
+                    }
+                  }}
                   placeholder="Write a post for this event"
                   className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
-                <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700">
+                <button
+                  disabled={postingCommentId === item.id || !(commentDrafts[item.id] || '').trim()}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   <ThumbsUp className="h-4 w-4" />
-                  Post
+                  {postingCommentId === item.id ? 'Posting...' : 'Post'}
                 </button>
               </form>
+              {commentErrors[item.id] && (
+                <p className="-mt-2 mb-4 text-sm font-semibold text-rose-500 dark:text-rose-400">
+                  {commentErrors[item.id]}
+                </p>
+              )}
 
               <div className="space-y-3">
                 {item.comments.length === 0 ? (

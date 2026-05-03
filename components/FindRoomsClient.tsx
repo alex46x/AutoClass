@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { findEmptyRooms } from '@/app/actions/rooms';
 import { Search, Monitor, Users, Beaker, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import GlassSelect from '@/components/GlassSelect';
+import GlassTimePicker from '@/components/GlassTimePicker';
 
 export default function FindRoomsClient() {
   const [day, setDay] = useState(new Date().getDay());
@@ -48,29 +50,27 @@ export default function FindRoomsClient() {
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Day of Week</label>
-              <select 
+              <GlassSelect
                 value={day} 
                 onChange={(e) => setDay(Number(e.target.value))}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full"
               >
                 {days.map((d, i) => <option key={i} value={i}>{d}</option>)}
-              </select>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Time Slot</label>
               <div className="grid grid-cols-2 gap-2">
-                <input 
-                  type="time" 
+                <GlassTimePicker
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  onChange={setStartTime}
+                  className="w-full"
                 />
-                <input 
-                  type="time" 
+                <GlassTimePicker
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  onChange={setEndTime}
+                  className="w-full"
                 />
               </div>
             </div>

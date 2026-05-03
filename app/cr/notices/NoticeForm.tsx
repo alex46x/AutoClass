@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { sendNotice } from '@/app/actions/cr';
 import { CheckCircle2 } from 'lucide-react';
+import GlassDatePicker from '@/components/GlassDatePicker';
+import GlassSelect from '@/components/GlassSelect';
+import GlassTimePicker from '@/components/GlassTimePicker';
 
 export default function NoticeForm({
   courses
@@ -81,15 +84,15 @@ export default function NoticeForm({
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Course
         </label>
-        <select 
+        <GlassSelect
           name="courseId" 
           required={type === 'SCHEDULE'}
-          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full"
         >
           {type === 'NOTICE' && <option value="0">General class update</option>}
           <option value="">{type === 'SCHEDULE' ? 'Select a course for this schedule...' : 'Or select a specific course...'}</option>
           {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
-        </select>
+        </GlassSelect>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
           General updates go to your active section classmates. Course notices also notify the course teacher.
         </p>
@@ -114,33 +117,30 @@ export default function NoticeForm({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Date
             </label>
-            <input
-              type="date"
+            <GlassDatePicker
               name="scheduledDate"
               required={type === 'SCHEDULE'}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Schedule date"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Start
             </label>
-            <input
-              type="time"
+            <GlassTimePicker
               name="startTime"
               required={type === 'SCHEDULE'}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Start time"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               End
             </label>
-            <input
-              type="time"
+            <GlassTimePicker
               name="endTime"
               required={type === 'SCHEDULE'}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="End time"
             />
           </div>
         </div>

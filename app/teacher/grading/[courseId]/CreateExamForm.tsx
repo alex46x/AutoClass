@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { createExam } from '@/app/actions/grading';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function CreateExamForm({ courseId }: { courseId: number }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function CreateExamForm({ courseId }: { courseId: number }) {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Assessment Type</label>
-                  <select 
+                  <GlassSelect
                     value={formData.type}
                     onChange={(e) => {
                       const type = e.target.value;
@@ -66,13 +67,13 @@ export default function CreateExamForm({ courseId }: { courseId: number }) {
                       if (type === 'ASSIGNMENT') maxMarks = 10;
                       setFormData({...formData, type, maxMarks});
                     }}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full"
                   >
                     <option value="MIDTERM">Midterm Exam</option>
                     <option value="FINAL">Final Exam</option>
                     <option value="QUIZ">Quiz / Class Test</option>
                     <option value="ASSIGNMENT">Assignment</option>
-                  </select>
+                  </GlassSelect>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title</label>

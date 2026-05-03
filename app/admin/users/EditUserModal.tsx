@@ -6,6 +6,7 @@ import { getUserCourseIds } from '@/app/actions/admin';
 import { Edit2, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function EditUserModal({ 
   user,
@@ -124,22 +125,22 @@ export default function EditUserModal({
 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Role</label>
-                  <select value={role} onChange={e => setRole(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                  <GlassSelect value={role} onChange={e => setRole(e.target.value)} className="w-full">
                     <option value="STUDENT">Student</option>
                     <option value="CR">Class Representative (CR)</option>
                     <option value="TEACHER">Teacher</option>
                     <option value="HEAD">Department Head</option>
                     <option value="ADMIN">System Admin</option>
-                  </select>
+                  </GlassSelect>
                 </div>
 
                 {role !== 'ADMIN' && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                    <select value={departmentId} onChange={e => { setDepartmentId(e.target.value); setSemesterId(''); setSectionId(''); }} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                    <GlassSelect value={departmentId} onChange={e => { setDepartmentId(e.target.value); setSemesterId(''); setSectionId(''); }} className="w-full">
                       <option value="">No Department</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
+                    </GlassSelect>
                   </div>
                 )}
 
@@ -163,17 +164,17 @@ export default function EditUserModal({
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Semester</label>
-                      <select value={semesterId} onChange={e => { setSemesterId(e.target.value); setSectionId(''); }} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                      <GlassSelect value={semesterId} onChange={e => { setSemesterId(e.target.value); setSectionId(''); }} className="w-full">
                         <option value="">None</option>
                         {availableSemesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                      </GlassSelect>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Section</label>
-                      <select value={sectionId} onChange={e => setSectionId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                      <GlassSelect value={sectionId} onChange={e => setSectionId(e.target.value)} className="w-full">
                         <option value="">None</option>
                         {availableSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                      </GlassSelect>
                     </div>
                   </div>
                   <div>

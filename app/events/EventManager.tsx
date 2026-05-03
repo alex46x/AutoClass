@@ -4,6 +4,9 @@ import { createEvent, EventScope, EventView, setEventStatus } from '@/app/action
 import { CalendarClock, MapPin, Plus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import GlassDatePicker from '@/components/GlassDatePicker';
+import GlassSelect from '@/components/GlassSelect';
+import GlassTimePicker from '@/components/GlassTimePicker';
 
 const scopeCopy: Record<EventScope, { title: string; subtitle: string; audience: string }> = {
   CLASS: {
@@ -113,9 +116,9 @@ export default function EventManager({ scope, events }: { scope: EventScope; eve
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
-              <select name="category" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <GlassSelect name="category" className="w-full">
                 {categories.map(category => <option key={category} value={category}>{category}</option>)}
-              </select>
+              </GlassSelect>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Location</label>
@@ -126,22 +129,22 @@ export default function EventManager({ scope, events }: { scope: EventScope; eve
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Start Date</label>
-              <input name="startDate" required type="date" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <GlassDatePicker name="startDate" required placeholder="Start date" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Start Time</label>
-              <input name="startTime" required type="time" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <GlassTimePicker name="startTime" required placeholder="Start time" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">End Date</label>
-              <input name="endDate" type="date" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <GlassDatePicker name="endDate" placeholder="End date" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">End Time</label>
-              <input name="endTime" type="time" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <GlassTimePicker name="endTime" placeholder="End time" />
             </div>
           </div>
 

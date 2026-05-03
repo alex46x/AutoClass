@@ -1,3 +1,317 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  :root {
+    --glass-field-bg: rgba(255, 255, 255, 0.62);
+    --glass-field-bg-hover: rgba(255, 255, 255, 0.78);
+    --glass-field-border: rgba(99, 102, 241, 0.28);
+    --glass-field-border-hover: rgba(99, 102, 241, 0.46);
+    --glass-field-text: #0f172a;
+    --glass-field-muted: #475569;
+    --glass-field-shadow: 0 14px 36px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    --glass-field-focus-shadow: 0 0 0 4px rgba(99, 102, 241, 0.16), 0 18px 42px rgba(79, 70, 229, 0.16);
+    --glass-option-bg: #f8fafc;
+    --glass-option-text: #0f172a;
+    --glass-option-hover: #e0e7ff;
+    --glass-indicator-filter: none;
+  }
+
+  .dark {
+    --glass-field-bg: rgba(30, 41, 59, 0.58);
+    --glass-field-bg-hover: rgba(30, 41, 59, 0.74);
+    --glass-field-border: rgba(129, 140, 248, 0.34);
+    --glass-field-border-hover: rgba(129, 140, 248, 0.58);
+    --glass-field-text: #f8fafc;
+    --glass-field-muted: #cbd5e1;
+    --glass-field-shadow: 0 18px 44px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --glass-field-focus-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2), 0 18px 46px rgba(79, 70, 229, 0.26);
+    --glass-option-bg: #172033;
+    --glass-option-text: #f8fafc;
+    --glass-option-hover: #312e81;
+    --glass-indicator-filter: invert(1) brightness(1.3);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea {
+    color: #0f172a;
+    caret-color: #4f46e5;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  .dark textarea {
+    color: #f8fafc !important;
+    caret-color: #a5b4fc;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #64748b;
+    opacity: 1;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgba(203, 213, 225, 0.68) !important;
+    opacity: 1;
+  }
+
+  input:disabled::placeholder,
+  textarea:disabled::placeholder {
+    color: #94a3b8;
+  }
+
+  .dark input:disabled::placeholder,
+  .dark textarea:disabled::placeholder {
+    color: rgba(148, 163, 184, 0.58) !important;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+    flex: 0 0 auto;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 0.4rem !important;
+    border: 1px solid rgba(99, 102, 241, 0.36);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(226, 232, 240, 0.42));
+    box-shadow:
+      0 10px 24px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    backdrop-filter: blur(14px) saturate(150%);
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .dark input[type="checkbox"] {
+    border-color: rgba(129, 140, 248, 0.42);
+    background:
+      linear-gradient(135deg, rgba(51, 65, 85, 0.82), rgba(15, 23, 42, 0.58));
+    box-shadow:
+      0 12px 26px rgba(2, 6, 23, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    width: 0.62rem;
+    height: 0.62rem;
+    transform: scale(0.55) rotate(-8deg);
+    opacity: 0;
+    background: #ffffff;
+    clip-path: polygon(14% 52%, 0 66%, 37% 100%, 100% 18%, 84% 6%, 35% 70%);
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  input[type="checkbox"]:hover {
+    border-color: rgba(99, 102, 241, 0.7);
+    transform: translateY(-1px);
+    box-shadow:
+      0 14px 30px rgba(79, 70, 229, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  .dark input[type="checkbox"]:hover {
+    border-color: rgba(165, 180, 252, 0.78);
+    box-shadow:
+      0 14px 32px rgba(79, 70, 229, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  input[type="checkbox"]:checked {
+    border-color: rgba(129, 140, 248, 0.95);
+    background: linear-gradient(135deg, #4f46e5, #2563eb);
+    box-shadow:
+      0 14px 30px rgba(79, 70, 229, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+
+  input[type="checkbox"]:checked::before {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 4px rgba(99, 102, 241, 0.18),
+      0 14px 30px rgba(79, 70, 229, 0.22);
+  }
+
+  input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  label:has(input[type="checkbox"]) {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  label:has(input[type="checkbox"]:checked) {
+    border-color: rgba(99, 102, 241, 0.62) !important;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    box-shadow:
+      0 14px 34px rgba(79, 70, 229, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .dark label:has(input[type="checkbox"]:checked) {
+    background-color: rgba(79, 70, 229, 0.18) !important;
+    border-color: rgba(129, 140, 248, 0.68) !important;
+  }
+
+  select,
+  input[type="date"],
+  input[type="time"],
+  input[type="month"],
+  input[type="week"],
+  input[type="datetime-local"] {
+    color-scheme: light;
+    background-color: var(--glass-field-bg) !important;
+    border-color: var(--glass-field-border) !important;
+    color: var(--glass-field-text) !important;
+    box-shadow: var(--glass-field-shadow);
+    -webkit-backdrop-filter: blur(18px) saturate(155%);
+    backdrop-filter: blur(18px) saturate(155%);
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  .dark select,
+  .dark input[type="date"],
+  .dark input[type="time"],
+  .dark input[type="month"],
+  .dark input[type="week"],
+  .dark input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+
+  select:hover,
+  input[type="date"]:hover,
+  input[type="time"]:hover,
+  input[type="month"]:hover,
+  input[type="week"]:hover,
+  input[type="datetime-local"]:hover {
+    background-color: var(--glass-field-bg-hover) !important;
+    border-color: var(--glass-field-border-hover) !important;
+  }
+
+  select:focus,
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  input[type="month"]:focus,
+  input[type="week"]:focus,
+  input[type="datetime-local"]:focus {
+    border-color: rgba(99, 102, 241, 0.78) !important;
+    box-shadow: var(--glass-field-focus-shadow) !important;
+  }
+
+  select:disabled,
+  input[type="date"]:disabled,
+  input[type="time"]:disabled,
+  input[type="month"]:disabled,
+  input[type="week"]:disabled,
+  input[type="datetime-local"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+  }
+
+  select:not([multiple]) {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%),
+      linear-gradient(to right, rgba(99, 102, 241, 0.22), rgba(99, 102, 241, 0.06));
+    background-position:
+      calc(100% - 20px) calc(50% - 2px),
+      calc(100% - 15px) calc(50% - 2px),
+      100% 50%;
+    background-repeat: no-repeat;
+    background-size:
+      5px 5px,
+      5px 5px,
+      2.85rem 100%;
+    padding-right: 3.25rem !important;
+  }
+
+  select option,
+  select optgroup {
+    background-color: var(--glass-option-bg);
+    color: var(--glass-option-text);
+  }
+
+  select option:checked {
+    background: linear-gradient(135deg, #4f46e5, #2563eb);
+    color: #ffffff;
+  }
+
+  select option:hover {
+    background-color: var(--glass-option-hover);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator,
+  input[type="week"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.2rem;
+    opacity: 0.78;
+    filter: var(--glass-indicator-filter);
+    transition: background-color 180ms ease, opacity 180ms ease;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover,
+  input[type="month"]::-webkit-calendar-picker-indicator:hover,
+  input[type="week"]::-webkit-calendar-picker-indicator:hover,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(99, 102, 241, 0.16);
+    opacity: 1;
+  }
+
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="time"]::-webkit-datetime-edit,
+  input[type="month"]::-webkit-datetime-edit,
+  input[type="week"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    color: var(--glass-field-text);
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="month"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="week"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+    color: var(--glass-field-muted);
+  }
+}

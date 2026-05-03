@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateCourse } from '@/app/actions/admin';
 import { Edit2, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function EditCourseModal({ 
   course,
@@ -84,10 +85,10 @@ export default function EditCourseModal({
 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                  <select required value={departmentId} onChange={e => setDepartmentId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+                  <GlassSelect required value={departmentId} onChange={e => setDepartmentId(e.target.value)} className="w-full">
                     <option value="">Select Department</option>
                     {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
+                  </GlassSelect>
                 </div>
 
                 <div className="pt-4 flex justify-end gap-3">

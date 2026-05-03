@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { createCourse } from '@/app/actions/admin';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlassSelect from '@/components/GlassSelect';
 
 export default function AddCourseForm({ departments }: { departments: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,15 +96,15 @@ export default function AddCourseForm({ departments }: { departments: any[] }) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                  <select 
+                  <GlassSelect
                     value={formData.departmentId}
                     onChange={(e) => setFormData({...formData, departmentId: Number(e.target.value)})}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full"
                   >
                     {departments.map(dept => (
                       <option key={dept.id} value={dept.id}>{dept.name} ({dept.code})</option>
                     ))}
-                  </select>
+                  </GlassSelect>
                 </div>
 
                 <div className="pt-4 flex gap-3">
