@@ -74,7 +74,8 @@ async function getCurrentUser() {
   return user;
 }
 
-async function requireHost(scope: EventScope) {
+async function requireHost(scope: EventScope, options: { requireScopeAssignment?: boolean } = {}) {
+  const { requireScopeAssignment = true } = options;
   const user = await getCurrentUser();
 
   if (scope === 'CLASS' && user.role !== 'CR') {
@@ -86,10 +87,10 @@ async function requireHost(scope: EventScope) {
   if (scope === 'UNIVERSITY' && user.role !== 'ADMIN') {
     throw new Error('Only an admin can host a university event');
   }
-  if ((scope === 'CLASS' || scope === 'DEPARTMENT') && !user.departmentId) {
+  if (requireScopeAssignment && (scope === 'CLASS' || scope === 'DEPARTMENT') && !user.departmentId) {
     throw new Error('Your account is not assigned to a department');
   }
-  if (scope === 'CLASS' && (!user.semesterId || !user.sectionId)) {
+  if (requireScopeAssignment && scope === 'CLASS' && (!user.semesterId || !user.sectionId)) {
     throw new Error('Your CR account needs a semester and section before hosting a class event');
   }
 
@@ -248,7 +249,7 @@ export async function addEventComment(eventId: number, message: string) {
 }
 
 export async function getHostedEvents(scope: EventScope) {
-  const host = await requireHost(scope);
+  const host = await requireHost(scope, { requireScopeAssignment: false });
   return await getEventsForWhere(sql`e.host_id = ${host.id} AND e.scope = ${scope}`, host.id);
 }
 

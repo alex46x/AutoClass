@@ -1,10 +1,15 @@
-const secretKey = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'development_only_jwt_secret_change_me');
-
-if (!secretKey) {
-  throw new Error('JWT_SECRET must be set in production.');
-}
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+
+function getSecretKey() {
+  const secretKey = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'development_only_jwt_secret_change_me');
+
+  if (!secretKey) {
+    throw new Error('JWT_SECRET must be set in production.');
+  }
+
+  return secretKey;
+}
 
 function base64UrlEncode(input: string | Uint8Array) {
   const bytes = typeof input === 'string' ? encoder.encode(input) : input;
@@ -35,7 +40,7 @@ function base64UrlDecode(input: string) {
 async function getSigningKey() {
   return await crypto.subtle.importKey(
     'raw',
-    encoder.encode(secretKey),
+    encoder.encode(getSecretKey()),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify']
