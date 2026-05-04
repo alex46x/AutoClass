@@ -5,14 +5,27 @@ import { updateStudentProfile } from '@/app/actions/profile';
 import { Save, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, '');
+}
+
+function semesterNumberOnly(value: string) {
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const [beforeDecimal, ...afterDecimal] = cleaned.split('.');
+
+  return afterDecimal.length > 0
+    ? `${beforeDecimal}.${afterDecimal.join('')}`
+    : beforeDecimal;
+}
+
 export default function EditProfileForm({ profile }: { profile: any }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: profile.name,
-    semester: profile.semester || '',
-    section: profile.section || '',
+    semester: profile.semester || profile.semesterId?.toString() || '',
+    section: profile.section || profile.sectionId?.toString() || '',
     roll: profile.roll || '',
   });
 
@@ -78,8 +91,11 @@ export default function EditProfileForm({ profile }: { profile: any }) {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Roll Number</label>
               <input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                title="Roll number can contain digits only"
                 value={formData.roll}
-                onChange={e => setFormData({ ...formData, roll: e.target.value })}
+                onChange={e => setFormData({ ...formData, roll: digitsOnly(e.target.value) })}
                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"
               />
             </div>
@@ -87,8 +103,11 @@ export default function EditProfileForm({ profile }: { profile: any }) {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Semester (e.g., 2.2)</label>
               <input
                 type="text"
+                inputMode="decimal"
+                pattern="[0-9]+(\.[0-9]+)?"
+                title="Semester can contain digits with one optional decimal point, such as 2.2"
                 value={formData.semester}
-                onChange={e => setFormData({ ...formData, semester: e.target.value })}
+                onChange={e => setFormData({ ...formData, semester: semesterNumberOnly(e.target.value) })}
                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"
                 placeholder="e.g. 2.2"
               />

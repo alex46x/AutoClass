@@ -24,13 +24,25 @@ export async function getStudentProfile() {
 export async function updateStudentProfile(data: {
   name: string;
   roll?: string;
+  semester?: string;
   phone?: string;
 }) {
   const session = await requireStudent();
+  const name = data.name.trim();
+  const roll = data.roll?.trim() || null;
+  const semester = data.semester?.trim();
+
+  if (!name) throw new Error('Name is required');
+  if (roll && !/^\d+$/.test(roll)) {
+    throw new Error('Roll number can contain digits only');
+  }
+  if (semester && !/^\d+(\.\d+)?$/.test(semester)) {
+    throw new Error('Semester can contain digits with one optional decimal point');
+  }
 
   await db.update(users).set({
-    name: data.name,
-    roll: data.roll,
+    name,
+    roll,
   }).where(eq(users.id, session.id));
 
   revalidatePath('/dashboard/profile');
