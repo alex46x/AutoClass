@@ -60,6 +60,7 @@ const navItems: Record<string, NavItem[]> = {
     { icon: User, label: 'Profile', href: '/dashboard/profile' },
     // ── CR Management Features ────────────────────
     { icon: LayoutDashboard, label: 'CR Dashboard', href: '/cr', divider: 'CR Tools' },
+    { icon: MessageSquare, label: 'Messages', href: '/cr/messages' },
     { icon: Users, label: 'Class Roster', href: '/cr/roster' },
     { icon: Users, label: 'Approve Classmates', href: '/cr/approvals' },
     { icon: Search, label: 'Find Room', href: '/cr/rooms' },

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckCheck, Inbox, Loader2, MailPlus, MessageSquare, Reply, Send, X } from 'lucide-react';
+import { ArrowLeft, CheckCheck, Inbox, Loader2, MailPlus, MessageSquare, Reply, Send, X } from 'lucide-react';
 import { markMessageThreadRead, replyToPersonalMessage, sendPersonalMessage } from '@/app/actions/messages';
 import GlassSelect from '@/components/GlassSelect';
 
@@ -57,6 +57,7 @@ function formatDate(value: number | string | Date) {
 function roleLabel(role: string) {
   if (role === 'HEAD') return 'Department Head';
   if (role === 'ADMIN') return 'System Admin';
+  if (role === 'CR') return 'Class Representative';
   return 'Teacher';
 }
 
@@ -82,10 +83,11 @@ export default function StaffMessagesView({
   const [loading, setLoading] = useState(false);
   const [replying, setReplying] = useState(false);
   const [error, setError] = useState('');
+  const hasExplicitThread = typeof selectedThreadId === 'number';
 
   const selectedThread = useMemo(
-    () => threads.find(thread => thread.id === selectedThreadId) ?? threads[0],
-    [selectedThreadId, threads]
+    () => (hasExplicitThread ? threads.find(thread => thread.id === selectedThreadId) : threads[0]),
+    [hasExplicitThread, selectedThreadId, threads]
   );
 
   useEffect(() => {
@@ -134,20 +136,20 @@ export default function StaffMessagesView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-indigo-600 dark:text-indigo-400" suppressHydrationWarning />
-            Staff Messages
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" suppressHydrationWarning />
+            Messages
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Personal messages between teachers, department heads, and system admins.
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
+            Personal conversations for staff and department class representatives.
           </p>
         </div>
         <button
           onClick={() => setComposeOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-sm transition-colors"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-sm transition-colors"
         >
           <MailPlus className="w-4 h-4" suppressHydrationWarning />
           New Message
@@ -160,8 +162,8 @@ export default function StaffMessagesView({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm min-h-[520px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-4 lg:gap-6">
+        <section className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm min-h-[420px] sm:min-h-[520px] ${hasExplicitThread ? 'hidden lg:block' : ''}`}>
           <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h2 className="font-bold text-slate-900 dark:text-white">Conversations</h2>
             <span className="text-xs font-bold text-slate-400">{threads.length}</span>
@@ -171,7 +173,7 @@ export default function StaffMessagesView({
             <div className="h-[440px] flex flex-col items-center justify-center text-center p-8">
               <Inbox className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" suppressHydrationWarning />
               <h3 className="font-bold text-slate-900 dark:text-white">No messages yet</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Start a staff conversation when you need a direct decision or follow-up.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Start a conversation when you need a direct decision or follow-up.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -203,7 +205,7 @@ export default function StaffMessagesView({
           )}
         </section>
 
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm min-h-[520px] flex flex-col">
+        <section className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm min-h-[420px] sm:min-h-[520px] flex-col min-w-0 ${!hasExplicitThread ? 'hidden lg:flex' : 'flex'}`}>
           {!selectedThread ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
               <MessageSquare className="w-14 h-14 text-slate-300 dark:text-slate-600 mb-3" suppressHydrationWarning />
@@ -212,30 +214,34 @@ export default function StaffMessagesView({
             </div>
           ) : (
             <>
-              <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">{selectedThread.subject}</h2>
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 dark:border-slate-800">
+                <Link href={basePath} className="inline-flex lg:hidden items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white mb-3">
+                  <ArrowLeft className="w-4 h-4" suppressHydrationWarning />
+                  Conversations
+                </Link>
+                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white break-words">{selectedThread.subject}</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   Conversation with {selectedThread.otherParty.name} ({roleLabel(selectedThread.otherParty.role)})
                 </p>
               </div>
 
-              <div className="flex-1 p-6 space-y-4 overflow-y-auto max-h-[560px] bg-slate-50/60 dark:bg-slate-950/40">
+              <div className="flex-1 p-3 sm:p-6 space-y-4 overflow-y-auto max-h-[60vh] sm:max-h-[560px] bg-slate-50/60 dark:bg-slate-950/40">
                 {selectedThread.messages.map(message => {
                   const mine = message.senderId === currentUser.id;
                   return (
                     <div key={message.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[82%] rounded-2xl px-4 py-3 border shadow-sm ${
+                      <div className={`max-w-[92%] sm:max-w-[82%] rounded-2xl px-4 py-3 border shadow-sm min-w-0 ${
                         mine
                           ? 'bg-indigo-600 border-indigo-600 text-white'
                           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100'
                       }`}>
-                        <div className="flex items-center justify-between gap-4 mb-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 mb-1">
                           <p className={`text-xs font-black uppercase tracking-wider ${mine ? 'text-indigo-100' : 'text-slate-400'}`}>
                             {mine ? 'You' : message.senderName}
                           </p>
                           <p className={`text-[11px] ${mine ? 'text-indigo-100' : 'text-slate-400'}`}>{formatDate(message.createdAt)}</p>
                         </div>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.body}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.body}</p>
                       </div>
                     </div>
                   );
@@ -243,7 +249,7 @@ export default function StaffMessagesView({
               </div>
 
               <form onSubmit={handleReply} className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <textarea
                     required
                     rows={2}
@@ -255,7 +261,7 @@ export default function StaffMessagesView({
                   <button
                     type="submit"
                     disabled={replying}
-                    className="self-stretch px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-colors disabled:opacity-60"
+                    className="self-stretch px-5 min-h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-colors disabled:opacity-60 inline-flex items-center justify-center"
                     title="Send reply"
                   >
                     {replying ? <Loader2 className="w-5 h-5 animate-spin" suppressHydrationWarning /> : <Reply className="w-5 h-5" suppressHydrationWarning />}
@@ -268,14 +274,14 @@ export default function StaffMessagesView({
       </div>
 
       {composeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-xl shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-xl max-h-[calc(100dvh-1.5rem)] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <MailPlus className="w-5 h-5 text-indigo-500" suppressHydrationWarning />
-                New Staff Message
+                New Message
               </h3>
-              <button onClick={() => setComposeOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <button onClick={() => setComposeOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="w-5 h-5" suppressHydrationWarning />
               </button>
             </div>
@@ -289,7 +295,7 @@ export default function StaffMessagesView({
                   onChange={event => setRecipientId(event.target.value)}
                   className="w-full"
                 >
-                  <option value="">Select teacher, head, or admin</option>
+                  <option value="">Select a recipient</option>
                   {recipients.map(recipient => (
                     <option key={recipient.id} value={recipient.id}>
                       {recipient.name} - {roleLabel(recipient.role)}{recipient.departmentName ? `, ${recipient.departmentName}` : ''}
@@ -321,7 +327,7 @@ export default function StaffMessagesView({
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-3">
+              <div className="pt-3 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setComposeOpen(false)}

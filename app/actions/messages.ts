@@ -8,6 +8,9 @@ import { revalidatePath } from 'next/cache';
 import { sendNotification } from './notifications';
 
 const STAFF_ROLES = ['TEACHER', 'HEAD', 'ADMIN'];
+const MESSAGING_ROLES = [...STAFF_ROLES, 'CR'];
+
+type UserRow = typeof users.$inferSelect;
 
 type MessageRow = {
   id: number;
@@ -24,26 +27,58 @@ type MessageRow = {
   recipientRole: string;
 };
 
-async function requireStaff() {
+async function requireMessagingUser() {
   const session = await getSession();
-  if (!session || !STAFF_ROLES.includes(session.role)) {
+  if (!session || !MESSAGING_ROLES.includes(session.role)) {
     throw new Error('Unauthorized');
   }
-  return session;
+
+  const user = await db.select().from(users).where(eq(users.id, session.id)).get();
+  if (!user || user.accountStatus !== 'ACTIVE') {
+    throw new Error('Unauthorized');
+  }
+
+  return { session, user };
 }
 
 function isStaffRole(role: string | null | undefined) {
   return !!role && STAFF_ROLES.includes(role);
 }
 
+function isMessagingRole(role: string | null | undefined) {
+  return !!role && MESSAGING_ROLES.includes(role);
+}
+
+function sameDepartment(a: UserRow, b: UserRow) {
+  return !!a.departmentId && !!b.departmentId && a.departmentId === b.departmentId;
+}
+
+function canStartConversation(sender: UserRow, recipient: UserRow) {
+  if (!isMessagingRole(sender.role) || !isMessagingRole(recipient.role)) return false;
+  if (sender.id === recipient.id || recipient.accountStatus !== 'ACTIVE') return false;
+
+  if (isStaffRole(sender.role) && isStaffRole(recipient.role)) return true;
+  if (isStaffRole(sender.role) && recipient.role === 'CR') return sameDepartment(sender, recipient);
+  if (sender.role === 'CR' && (recipient.role === 'TEACHER' || recipient.role === 'HEAD')) return sameDepartment(sender, recipient);
+
+  return false;
+}
+
 function revalidateStaffMessages() {
   revalidatePath('/teacher/messages');
   revalidatePath('/admin/messages');
+  revalidatePath('/cr/messages');
   revalidatePath('/dashboard/notifications');
 }
 
 export async function getStaffRecipients() {
-  const session = await requireStaff();
+  const { user } = await requireMessagingUser();
+  const recipientScope = user.role === 'CR'
+    ? sql`(${users.role} IN ('TEACHER', 'HEAD') AND COALESCE(${users.departmentId}, 0) = ${user.departmentId || 0})`
+    : sql`(
+        ${users.role} IN ('TEACHER', 'HEAD', 'ADMIN')
+        OR (${users.role} = 'CR' AND COALESCE(${users.departmentId}, 0) = ${user.departmentId || 0})
+      )`;
 
   return await db.select({
     id: users.id,
@@ -56,15 +91,15 @@ export async function getStaffRecipients() {
     .from(users)
     .leftJoin(departments, eq(users.departmentId, departments.id))
     .where(and(
-      or(eq(users.role, 'TEACHER'), eq(users.role, 'HEAD'), eq(users.role, 'ADMIN')),
+      recipientScope,
       eq(users.accountStatus, 'ACTIVE'),
-      sql`${users.id} != ${session.id}`
+      sql`${users.id} != ${user.id}`
     ))
     .orderBy(users.role, users.name);
 }
 
 export async function sendPersonalMessage(data: { recipientId: number; subject: string; body: string }) {
-  const session = await requireStaff();
+  const { session, user } = await requireMessagingUser();
   const subject = data.subject.trim();
   const body = data.body.trim();
 
@@ -72,13 +107,13 @@ export async function sendPersonalMessage(data: { recipientId: number; subject: 
     throw new Error('Subject and message are required');
   }
 
-  const recipient = await db.select({ id: users.id, role: users.role, name: users.name, accountStatus: users.accountStatus })
+  const recipient = await db.select()
     .from(users)
     .where(eq(users.id, data.recipientId))
     .get();
 
-  if (!recipient || !isStaffRole(recipient.role) || recipient.accountStatus !== 'ACTIVE' || recipient.id === session.id) {
-    throw new Error('Recipient must be an active teacher, department head, or admin');
+  if (!recipient || !canStartConversation(user, recipient as UserRow)) {
+    throw new Error('Recipient must be an active staff member or an allowed department CR');
   }
 
   const [message] = await db.insert(personalMessages).values({
@@ -99,7 +134,7 @@ export async function sendPersonalMessage(data: { recipientId: number; subject: 
 }
 
 export async function replyToPersonalMessage(parentMessageId: number, body: string) {
-  const session = await requireStaff();
+  const { session } = await requireMessagingUser();
   const messageBody = body.trim();
 
   if (!messageBody) {
@@ -139,7 +174,7 @@ export async function replyToPersonalMessage(parentMessageId: number, body: stri
 }
 
 export async function markMessageThreadRead(threadId: number) {
-  const session = await requireStaff();
+  const { session } = await requireMessagingUser();
 
   await db.update(personalMessages)
     .set({ isRead: true })
@@ -152,7 +187,7 @@ export async function markMessageThreadRead(threadId: number) {
 }
 
 export async function getMyMessageThreads() {
-  const session = await requireStaff();
+  const { session } = await requireMessagingUser();
   const rows = await db.all(sql`
     SELECT
       pm.id,
@@ -204,6 +239,6 @@ export async function getMyMessageThreads() {
 }
 
 export async function getCurrentStaffUser() {
-  const session = await requireStaff();
+  const { session } = await requireMessagingUser();
   return { id: session.id, name: session.name, role: session.role };
 }
